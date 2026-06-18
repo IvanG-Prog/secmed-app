@@ -11,9 +11,35 @@ import AppointmentsScreen  from '../screens/AppointmentsScreen';
 import DocumentsScreen     from '../screens/DocumentsScreen';
 import PortalScreen        from '../screens/PortalScreen';
 
+// 🔥 Auth
+import LoginScreen from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+
+// 🔥 Home
+import HomeScreen from '../screens/HomeScreen';
+
+// 🔥 Vademécum
+import VademecumScreen from '../screens/VademecumScreen';
+import VademecumDetailScreen from '../screens/VademecumDetailScreen';
+
+// 🔥 Hook de sesión
+import { useSession } from '../hooks/useSession';
+
 export type RootStackParamList = {
+  // Auth
+  Login: undefined;
+  Register: undefined;
+
+  // Home
+  Home: undefined;
+
+  // Vademécum
+  Vademecum: undefined;
+  VademecumDetail: { ef: string };
+
   // Tabs
   Tabs: undefined;
+
   // Stacks sobre los tabs
   PatientDetail:  { patientId: string; patientName: string };
   Consultation:   { patientId: string; patientName: string };
@@ -29,6 +55,7 @@ function icon(name: string, focused: boolean) {
     Pacientes: ['👤', '👤'],
     Agenda:    ['📅', '📅'],
     Docs:      ['📄', '📄'],
+    Vademecum: ['💊', '💊'], // 🔥 icono para el vademécum
     Portal:    ['🔐', '🔐'],
   };
   const [active, inactive] = icons[name] ?? ['•', '•'];
@@ -73,6 +100,11 @@ function Tabs() {
         options={{ tabBarLabel: 'Documentos', tabBarIcon: ({ focused }) => icon('Docs', focused) }}
       />
       <Tab.Screen
+        name="Vademecum"
+        component={VademecumScreen as React.ComponentType<any>}
+        options={{ tabBarLabel: 'Vademécum', tabBarIcon: ({ focused }) => icon('Vademecum', focused) }}
+      />
+      <Tab.Screen
         name="Portal"
         component={PortalScreen}
         options={{ tabBarLabel: 'ZK Portal', tabBarIcon: ({ focused }) => icon('Portal', focused) }}
@@ -82,13 +114,44 @@ function Tabs() {
 }
 
 export default function RootNavigator() {
+  // 🔥 Deshabilitado: flujo de sesión
+  // const session = useSession();
+  // if (session === 'loading') return null;
+
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {/* 🔥 FLUJO DE AUTENTICACIÓN — DESHABILITADO */}
+      {/*
+      {session === 'noDoctor' && (
+        <Stack.Screen name="Register" component={RegisterScreen} />
+      )}
+
+      {session === 'login' && (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      )}
+
+      {session === 'main' && (
+        <>
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="Vademecum" component={VademecumScreen} />
+          <Stack.Screen name="VademecumDetail" component={VademecumDetailScreen} />
+
+          <Stack.Screen name="Tabs"          component={Tabs} />
+          <Stack.Screen name="PatientDetail" component={PatientDetailScreen} />
+          <Stack.Screen name="Consultation"  component={ConsultationScreen} />
+          <Stack.Screen name="Documents"     component={DocumentsScreen} />
+          <Stack.Screen name="Portal"        component={PortalScreen} />
+        </>
+      )}
+      */}
+
+      {/* 🔥 APP PRINCIPAL DIRECTA */}
       <Stack.Screen name="Tabs"          component={Tabs} />
       <Stack.Screen name="PatientDetail" component={PatientDetailScreen} />
       <Stack.Screen name="Consultation"  component={ConsultationScreen} />
       <Stack.Screen name="Documents"     component={DocumentsScreen} />
       <Stack.Screen name="Portal"        component={PortalScreen} />
+      <Stack.Screen name="VademecumDetail" component={VademecumDetailScreen} />
     </Stack.Navigator>
   );
 }

@@ -2,6 +2,7 @@
 // SecMed API — apunta al backend Railway
 // ─────────────────────────────────────────────────────────────────────────────
 const BASE_URL = 'https://secmed-demo-production.up.railway.app/api';
+
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { 'Content-Type': 'application/json', ...init?.headers },
@@ -132,3 +133,27 @@ export const verifyDocument   = (id: string)          => req<{ valid: boolean; c
 export const attestBloodType  = (patient_id: string, value: string)              => req<AttestResponse>('/attest', { method: 'POST', body: JSON.stringify({ predicate: 'blood_type', patient_id, value }) });
 export const attestLastVisit  = (patient_id: string, threshold_days: number)    => req<AttestResponse>('/attest', { method: 'POST', body: JSON.stringify({ predicate: 'last_visit_within', patient_id, threshold_days }) });
 export const verifyAttestation = (id: string)                                    => req<VerifyResponse>(`/verify/${id}`);
+
+// ─── Vadémecum ───────────────────────────────────────────────────────────────
+export type DrugProduct = {
+  ef: string; nombre: string; principio_activo: string;
+  pa_key: string | null; representante: string | null;
+  fecha_vigencia: string | null; fecha_cancelado: string | null;
+  is_active: boolean;
+};
+
+export type DrugMonograph = {
+  id: string; dci: string; atc: string | null; via: string | null;
+  indicaciones: string | null; posologia: string | null;
+  contraindicaciones: string | null; interacciones: string | null;
+  advertencias: string | null; embarazo: string | null;
+  reacciones: string | null; sobredosis: string | null;
+  source_url: string | null; fecha_actualizacion: string | null;
+};
+
+export type VademecumSearchResult = { products: DrugProduct[]; monographs: DrugMonograph[] };
+export type ProductDetail = { product: DrugProduct; monograph: DrugMonograph | null };
+
+export const searchVademecum   = (q: string)        => req<VademecumSearchResult>(`/vademecum/search?q=${encodeURIComponent(q)}`);
+export const getVademecumProduct   = (ef: string)    => req<ProductDetail>(`/vademecum/product/${encodeURIComponent(ef)}`);
+export const getVademecumMonograph = (id: string)    => req<DrugMonograph>(`/vademecum/monograph/${encodeURIComponent(id)}`);
