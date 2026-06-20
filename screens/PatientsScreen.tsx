@@ -8,6 +8,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { listPatients, createPatient, PatientSummary, NewPatient } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { BLOOD_TYPES, FAMILY_HISTORY_OPTIONS } from '../utils/constants';
+import { SettingsButton } from '../components/SettingsButton';
 
 // ─── Componentes auxiliares ──────────────────────────────────────────────────
 
@@ -218,9 +219,12 @@ export default function PatientsScreen({ navigation }: any) {
           <Text style={styles.eyebrow}>SECMED</Text>
           <Text style={styles.title}>Pacientes</Text>
         </View>
-        <TouchableOpacity style={styles.addBtn} onPress={() => setShowAdd(true)} activeOpacity={0.8}>
-          <Text style={styles.addBtnText}>+ Nuevo</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.addBtn} onPress={() => setShowAdd(true)} activeOpacity={0.8}>
+            <Text style={styles.addBtnText}>+ Nuevo</Text>
+          </TouchableOpacity>
+          <SettingsButton />
+        </View>
       </View>
 
       {/* Búsqueda */}
@@ -294,6 +298,7 @@ export default function PatientsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: colors.bg },
   header:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md },
+  headerActions:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
   eyebrow:        { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
   title:          { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
   addBtn:         { backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 16, paddingVertical: 9 },

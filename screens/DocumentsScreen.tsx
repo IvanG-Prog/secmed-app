@@ -10,6 +10,7 @@ import {
 } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { DOC_TYPE_LABELS } from '../utils/constants';
+import { SettingsButton } from '../components/SettingsButton';
 
 function fmtDate(ts: number) {
   return new Date(ts * 1000).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -33,7 +34,6 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
       .finally(() => setLoading(false));
     return () => { setDoc(null); setVerified(null); };
   }, [docId]));
-
 
   if (!docId) return null;
 
@@ -60,8 +60,6 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
 
   const renderContent = (content: any, docType: string) => {
     if (!content) return null;
-
-    // Recetas
     if (docType === 'receta' && content.medicamentos) {
       return content.medicamentos.map((m: any, i: number) => (
         <View key={i} style={styles.medCard}>
@@ -71,8 +69,6 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
         </View>
       ));
     }
-
-    // Informes
     if (docType === 'informe') {
       const fields = [
         { label: 'RESUMEN', value: content.resumen },
@@ -88,25 +84,7 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
         </View>
       ));
     }
-
-    // Resultados externos de laboratorio
-    if ((docType === 'resultado_externo' || docType === 'externo' || docType === 'resultado') && content.resultados) {
-      return content.resultados.map((r: any, i: number) => (
-        <View key={i} style={styles.infoBlock}>
-          <Text style={styles.infoLabel}>{r.prueba}</Text>
-          <Text style={styles.infoText}>{r.valor}</Text>
-          {r.referencia ? <Text style={styles.infoText}>Ref: {r.referencia}</Text> : null}
-          {r.unidad ? <Text style={styles.infoText}>Unidad: {r.unidad}</Text> : null}
-        </View>
-      ));
-    }
-
-    // Fallback: JSON plano
-    return (
-      <Text style={{ fontFamily: 'Courier', fontSize: 11, color: colors.inkSoft }}>
-        {JSON.stringify(content, null, 2)}
-      </Text>
-    );
+    return <Text style={{ fontFamily: 'Courier', fontSize: 11, color: colors.inkSoft }}>{JSON.stringify(content, null, 2)}</Text>;
   };
 
   return (
@@ -198,8 +176,13 @@ export default function DocumentsScreen({ route }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>SECMED</Text>
-        <Text style={styles.title}>{patientName ? `Docs · ${patientName}` : 'Documentos'}</Text>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={styles.eyebrow}>SECMED</Text>
+            <Text style={styles.title}>{patientName ? `Docs · ${patientName}` : 'Documentos'}</Text>
+          </View>
+          <SettingsButton />
+        </View>
       </View>
 
       {/* Filtros */}
@@ -219,13 +202,7 @@ export default function DocumentsScreen({ route }: any) {
         keyExtractor={d => d.id}
         contentContainerStyle={{ padding: spacing.md, paddingBottom: 100 }}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => { setRefreshing(true); load(); }}
-            tintColor={colors.primary}
-          />
-        }
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
             <Text style={{ fontSize: 36, marginBottom: spacing.md }}>📄</Text>
@@ -236,11 +213,7 @@ export default function DocumentsScreen({ route }: any) {
           </View>
         }
         renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.docCard, shadow.card]}
-            activeOpacity={0.82}
-            onPress={() => setOpenDocId(item.id)}
-          >
+          <TouchableOpacity style={[styles.docCard, shadow.card]} activeOpacity={0.82} onPress={() => setOpenDocId(item.id)}>
             <Text style={styles.docIcon}>{item.doc_type === 'receta' ? '💊' : '📋'}</Text>
             <View style={styles.docInfo}>
               <Text style={styles.docTitle} numberOfLines={2}>{item.title}</Text>
@@ -260,10 +233,10 @@ export default function DocumentsScreen({ route }: any) {
   );
 }
 
-
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: colors.bg },
   header:           { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
+  headerRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   eyebrow:          { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
   title:            { fontSize: 26, fontWeight: '700', color: colors.ink, letterSpacing: -0.4 },
   filterRow:        { flexDirection: 'row', gap: 8, padding: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },

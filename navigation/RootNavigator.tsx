@@ -1,71 +1,76 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text } from 'react-native';
+import { Text, View, ActivityIndicator } from 'react-native';
 import { colors } from '../theme/tokens';
-
-import PatientsScreen      from '../screens/PatientsScreen';
-import PatientDetailScreen from '../screens/PatientDetailScreen';
-import ConsultationScreen  from '../screens/ConsultationScreen';
-import AppointmentsScreen  from '../screens/AppointmentsScreen';
-import DocumentsScreen     from '../screens/DocumentsScreen';
-import PortalScreen        from '../screens/PortalScreen';
-
-// 🔥 Auth
-import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
-
-// 🔥 Home
-import HomeScreen from '../screens/HomeScreen';
-
-// 🔥 Vademécum
-import VademecumScreen from '../screens/VademecumScreen';
-import VademecumDetailScreen from '../screens/VademecumDetailScreen';
-
-// 🔥 Hook de sesión
 import { useSession } from '../hooks/useSession';
 
+// Auth
+import HomeScreen     from '../screens/HomeScreen';
+import LoginScreen    from '../screens/LoginScreen';
+import RegisterScreen from '../screens/RegisterScreen';
+
+// App
+import PatientsScreen        from '../screens/PatientsScreen';
+import PatientDetailScreen   from '../screens/PatientDetailScreen';
+import ConsultationScreen    from '../screens/ConsultationScreen';
+import AppointmentsScreen    from '../screens/AppointmentsScreen';
+import DocumentsScreen       from '../screens/DocumentsScreen';
+import PortalScreen          from '../screens/PortalScreen';
+import VademecumScreen       from '../screens/VademecumScreen';
+import VademecumDetailScreen from '../screens/VademecumDetailScreen';
+import SettingsScreen from '../screens/Settingsscreen';
+import AccountSettingsScreen from '../screens/Accountsettingsscreen';
+import SecuritySettingsScreen from '../screens/Securitysettingsscreen';
+import PrivacySettingsScreen from '../screens/Privacysettingsscreen';
+import DataSettingsScreen from '../screens/Datasettingsscreen';
+
+
 export type RootStackParamList = {
-  // Auth
-  Login: undefined;
-  Register: undefined;
+  Tabs:             undefined;
+  PatientDetail:    { patientId: string; patientName: string };
+  Consultation:     { patientId: string; patientName: string };
+  Docs:             { patientId?: string; patientName?: string };
+  Portal:           { patientId?: string; premode?: 'blood_type' | 'last_visit' };
+  Vademecum:        undefined;
+  VademecumDetail:  { ef?: string; monographId?: string; productName?: string; dci?: string };
 
-  // Home
-  Home: undefined;
-
-  // Vademécum
-  Vademecum: undefined;
-  VademecumDetail: { ef: string };
-
-  // Tabs
-  Tabs: undefined;
-
-  // Stacks sobre los tabs
-  PatientDetail:  { patientId: string; patientName: string };
-  Consultation:   { patientId: string; patientName: string };
-  Documents:      { patientId?: string; patientName?: string };
-  Portal:         undefined;
+  Settings:         undefined;
+  AccountSettings:  undefined;
+  SecuritySettings: undefined;
+  PrivacySettings:  undefined;
+  DataSettings:     undefined;
 };
 
-const Tab   = createBottomTabNavigator();
-const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const AuthStack = createNativeStackNavigator();
+const Tab        = createBottomTabNavigator();
+const AppStack    = createNativeStackNavigator<RootStackParamList>();
+
+// ─── Iconos de tabs ───────────────────────────────────────────────────────────
 function icon(name: string, focused: boolean) {
-  const icons: Record<string, [string, string]> = {
-    Pacientes: ['👤', '👤'],
-    Agenda:    ['📅', '📅'],
-    Docs:      ['📄', '📄'],
-    Vademecum: ['💊', '💊'], // 🔥 icono para el vademécum
-    Portal:    ['🔐', '🔐'],
+  const icons: Record<string, string> = {
+    Pacientes: '👤', Agenda: '📅', Docs: '📄', Vademecum: '💊', Portal: '🔐',
   };
-  const [active, inactive] = icons[name] ?? ['•', '•'];
   return (
     <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.45 }}>
-      {focused ? active : inactive}
+      {icons[name] ?? '•'}
     </Text>
   );
 }
 
+// ─── Flujo no autenticado: Home → Login | Register ───────────────────────────
+function AuthFlow() {
+  return (
+    <AuthStack.Navigator screenOptions={{ headerShown: false }}>
+      <AuthStack.Screen name="Home"     component={HomeScreen} />
+      <AuthStack.Screen name="Login"    component={LoginScreen} />
+      <AuthStack.Screen name="Register" component={RegisterScreen} />
+    </AuthStack.Navigator>
+  );
+}
+
+// ─── Tabs principales (autenticado) ───────────────────────────────────────────
 function Tabs() {
   return (
     <Tab.Navigator
@@ -81,7 +86,7 @@ function Tabs() {
         },
         tabBarActiveTintColor:   colors.primary,
         tabBarInactiveTintColor: colors.inkSoft,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '500', marginTop: 2 },
+        tabBarLabelStyle: { fontSize: 10.5, fontWeight: '500', marginTop: 2 },
       }}
     >
       <Tab.Screen
@@ -101,8 +106,8 @@ function Tabs() {
       />
       <Tab.Screen
         name="Vademecum"
-        component={VademecumScreen as React.ComponentType<any>}
-        options={{ tabBarLabel: 'Vademécum', tabBarIcon: ({ focused }) => icon('Vademecum', focused) }}
+        component={VademecumScreen}
+        options={{ tabBarLabel: 'Vadémecum', tabBarIcon: ({ focused }) => icon('Vademecum', focused) }}
       />
       <Tab.Screen
         name="Portal"
@@ -113,45 +118,37 @@ function Tabs() {
   );
 }
 
-export default function RootNavigator() {
-  // 🔥 Deshabilitado: flujo de sesión
-  // const session = useSession();
-  // if (session === 'loading') return null;
-
+// ─── Flujo autenticado: Tabs + pantallas apiladas encima ─────────────────────
+function AppFlow() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {/* 🔥 FLUJO DE AUTENTICACIÓN — DESHABILITADO */}
-      {/*
-      {session === 'noDoctor' && (
-        <Stack.Screen name="Register" component={RegisterScreen} />
-      )}
-
-      {session === 'login' && (
-        <Stack.Screen name="Login" component={LoginScreen} />
-      )}
-
-      {session === 'main' && (
-        <>
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="Vademecum" component={VademecumScreen} />
-          <Stack.Screen name="VademecumDetail" component={VademecumDetailScreen} />
-
-          <Stack.Screen name="Tabs"          component={Tabs} />
-          <Stack.Screen name="PatientDetail" component={PatientDetailScreen} />
-          <Stack.Screen name="Consultation"  component={ConsultationScreen} />
-          <Stack.Screen name="Documents"     component={DocumentsScreen} />
-          <Stack.Screen name="Portal"        component={PortalScreen} />
-        </>
-      )}
-      */}
-
-      {/* 🔥 APP PRINCIPAL DIRECTA */}
-      <Stack.Screen name="Tabs"          component={Tabs} />
-      <Stack.Screen name="PatientDetail" component={PatientDetailScreen} />
-      <Stack.Screen name="Consultation"  component={ConsultationScreen} />
-      <Stack.Screen name="Documents"     component={DocumentsScreen} />
-      <Stack.Screen name="Portal"        component={PortalScreen} />
-      <Stack.Screen name="VademecumDetail" component={VademecumDetailScreen} />
-    </Stack.Navigator>
+    <AppStack.Navigator screenOptions={{ headerShown: false }}>
+      <AppStack.Screen name="Tabs"             component={Tabs} />
+      <AppStack.Screen name="PatientDetail"    component={PatientDetailScreen} />
+      <AppStack.Screen name="Consultation"     component={ConsultationScreen} />
+      <AppStack.Screen name="Docs"             component={DocumentsScreen} />
+      <AppStack.Screen name="Portal"           component={PortalScreen} />
+      <AppStack.Screen name="Vademecum"        component={VademecumScreen} />
+      <AppStack.Screen name="VademecumDetail"  component={VademecumDetailScreen} />
+      <AppStack.Screen name="Settings"         component={SettingsScreen} />
+      <AppStack.Screen name="AccountSettings"  component={AccountSettingsScreen} />
+      <AppStack.Screen name="SecuritySettings" component={SecuritySettingsScreen} />
+      <AppStack.Screen name="PrivacySettings"  component={PrivacySettingsScreen} />
+      <AppStack.Screen name="DataSettings"     component={DataSettingsScreen} />
+    </AppStack.Navigator>
   );
+}
+
+// ─── Raíz: decide entre AuthFlow y AppFlow según la sesión ───────────────────
+export default function RootNavigator() {
+  const { status } = useSession();
+
+  if (status === 'loading') {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator color={colors.primary} size="large" />
+      </View>
+    );
+  }
+
+  return status === 'authenticated' ? <AppFlow /> : <AuthFlow />;
 }
