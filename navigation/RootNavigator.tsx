@@ -11,6 +11,7 @@ import LoginScreen    from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 
 // App
+import DashboardScreen from '../screens/Dashboardscreen';
 import PatientsScreen        from '../screens/PatientsScreen';
 import PatientDetailScreen   from '../screens/PatientDetailScreen';
 import ConsultationScreen    from '../screens/ConsultationScreen';
@@ -25,8 +26,8 @@ import SecuritySettingsScreen from '../screens/Securitysettingsscreen';
 import PrivacySettingsScreen from '../screens/Privacysettingsscreen';
 import DataSettingsScreen from '../screens/Datasettingsscreen';
 
-
 export type RootStackParamList = {
+  Dashboard:        undefined;
   Tabs:             undefined;
   PatientDetail:    { patientId: string; patientName: string };
   Consultation:     { patientId: string; patientName: string };
@@ -42,10 +43,9 @@ export type RootStackParamList = {
   DataSettings:     undefined;
 };
 
-
 const AuthStack = createNativeStackNavigator();
-const Tab        = createBottomTabNavigator();
-const AppStack    = createNativeStackNavigator<RootStackParamList>();
+const Tab       = createBottomTabNavigator();
+const AppStack  = createNativeStackNavigator<RootStackParamList>();
 
 // ─── Iconos de tabs ───────────────────────────────────────────────────────────
 function icon(name: string, focused: boolean) {
@@ -122,6 +122,7 @@ function Tabs() {
 function AppFlow() {
   return (
     <AppStack.Navigator screenOptions={{ headerShown: false }}>
+      <AppStack.Screen name="Dashboard"        component={DashboardScreen} />
       <AppStack.Screen name="Tabs"             component={Tabs} />
       <AppStack.Screen name="PatientDetail"    component={PatientDetailScreen} />
       <AppStack.Screen name="Consultation"     component={ConsultationScreen} />

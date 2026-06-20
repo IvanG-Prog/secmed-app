@@ -157,3 +157,65 @@ export type ProductDetail = { product: DrugProduct; monograph: DrugMonograph | n
 export const searchVademecum   = (q: string)        => req<VademecumSearchResult>(`/vademecum/search?q=${encodeURIComponent(q)}`);
 export const getVademecumProduct   = (ef: string)    => req<ProductDetail>(`/vademecum/product/${encodeURIComponent(ef)}`);
 export const getVademecumMonograph = (id: string)    => req<DrugMonograph>(`/vademecum/monograph/${encodeURIComponent(id)}`);
+
+// ─── Dashboard — estadísticas agregadas ──────────────────────────────────────
+// El backend no expone un endpoint /stats propio; estas cifras se calculan
+// en el cliente combinando los endpoints existentes. Si el backend crece,
+// esto se puede reemplazar por una sola llamada a /api/dashboard.
+export type DashboardStats = {
+  totalPatients: number;
+  appointmentsToday: number;
+  confirmedAppointments: number;
+  documentsThisMonth: number;
+  // Tendencia de consultas: últimos 6 meses, incluyendo el actual.
+  // Cada punto es el conteo de citas cuyo starts_at cae en ese mes.
+  monthlyTrend: { label: string; count: number }[];
+  monthOverMonthChange: number; // % de cambio del mes actual vs el anterior
+};
+
+const MONTH_LABELS_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const [patients, appointments, documents] = await Promise.all([
+    listPatients(), listAppointments(), listDocuments(),
+  ]);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const appointmentsToday = appointments.filter(a => a.starts_at.slice(0, 10) === todayStr).length;
+  const confirmedAppointments = appointments.filter(a => a.status === 'confirmada').length;
+
+  const now = new Date();
+  const documentsThisMonth = documents.filter(d => {
+    const issued = new Date(d.issued_at * 1000);
+    return issued.getMonth() === now.getMonth() && issued.getFullYear() === now.getFullYear();
+  }).length;
+
+  // Construye los últimos 6 meses (incluyendo el actual) y cuenta citas por mes.
+  const months: { year: number; month: number; label: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth(), label: MONTH_LABELS_ES[d.getMonth()] });
+  }
+  const monthlyTrend = months.map(({ year, month, label }) => {
+    const count = appointments.filter(a => {
+      const d = new Date(a.starts_at);
+      return d.getFullYear() === year && d.getMonth() === month;
+    }).length;
+    return { label, count };
+  });
+
+  const current  = monthlyTrend[monthlyTrend.length - 1]?.count ?? 0;
+  const previous = monthlyTrend[monthlyTrend.length - 2]?.count ?? 0;
+  const monthOverMonthChange = previous === 0
+    ? (current > 0 ? 100 : 0)
+    : Math.round(((current - previous) / previous) * 100);
+
+  return {
+    totalPatients: patients.length,
+    appointmentsToday,
+    confirmedAppointments,
+    documentsThisMonth,
+    monthlyTrend,
+    monthOverMonthChange,
+  };
+}

@@ -2,15 +2,28 @@
 // Se usa en el header de cada pantalla principal de los Tabs
 // (Pacientes, Agenda, Documentos, Vadémecum, Portal) para no
 // sobrecargar la tab bar inferior con un sexto ítem.
+//
+// Funciona como un avatar de cuenta: si el médico tiene foto, la muestra;
+// si no, cae en sus iniciales (más personal que un ícono genérico de
+// engranaje — comunica "esta es tu cuenta", no solo "ajustes").
 import React from 'react';
 import { TouchableOpacity, Image, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { colors } from '../theme/tokens';
+import { useSession } from '../hooks/useSession';
 
 export function SettingsButton() {
   const navigation = useNavigation<any>();
+  const { doctor } = useSession();
 
-  const doctorPhotoUrl: string | null = null; //  URL de la foto real si existe
+  // La demo no tiene todavía subida de foto de perfil (no hay endpoint
+  // para eso); cuando exista, doctor.photoUrl alimentaría esto sin
+  // tener que tocar este componente.
+  const doctorPhotoUrl: string | null = (doctor as any)?.photoUrl ?? null;
+
+  const initials = doctor?.name
+    ? doctor.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
+    : '👤';
 
   return (
     <TouchableOpacity
@@ -22,7 +35,7 @@ export function SettingsButton() {
       {doctorPhotoUrl ? (
         <Image source={{ uri: doctorPhotoUrl }} style={styles.icon} />
       ) : (
-        <Text style={styles.fallback}>👤</Text>
+        <Text style={styles.fallback}>{initials}</Text>
       )}
     </TouchableOpacity>
   );
@@ -33,18 +46,21 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: colors.bgSoft,
+    backgroundColor: colors.secondarySoft,
+    borderWidth: 1.5,
+    borderColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   icon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 35,
+    height: 35,
+    borderRadius: 17.5,
   },
   fallback: {
-    fontSize: 20,
-    color: colors.ink,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.secondary,
   },
 });
