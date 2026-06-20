@@ -31,3 +31,5 @@ export const DOC_TYPE_LABELS: Record<string, string> = {
   receta:  '💊 Receta',
   informe: '📋 Informe',
 };
+
+export const VADEMECUM_MIN_QUERY_LENGTH = 2;

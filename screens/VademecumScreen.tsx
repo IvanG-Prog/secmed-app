@@ -1,93 +1,174 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, TextInput, ActivityIndicator, FlatList,
+  View, Text, TextInput, FlatList, TouchableOpacity,
+  StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { searchVademecum } from '../utils/api';
+import { searchVademecum, DrugProduct, DrugMonograph } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
+import { SettingsButton } from '../components/SettingsButton';
 
-export default function VademecumScreen() {
-  const navigation = useNavigation<any>();
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+function useDebounced<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  React.useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
+}
 
-  const handleSearch = async (text?: string) => {
-    const q = text !== undefined ? text : query;
-    if (q.length > 2) {
-      setLoading(true);
-      try {
-        const data = await searchVademecum(q);
-        setResults(data.products);
-      } catch (e: any) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setResults([]);
+export default function VademecumScreen({ navigation, route }: any) {
+  // Cuando se navega desde Consulta con un texto precargado (ej. nombre de fármaco
+  // detectado en el plan), lo usamos como búsqueda inicial.
+  const initialQuery = route?.params?.initialQuery ?? '';
+
+  const [query,      setQuery]      = useState(initialQuery);
+  const debouncedQuery = useDebounced(query, 350);
+  const [products,   setProducts]   = useState<DrugProduct[]>([]);
+  const [monographs, setMonographs] = useState<DrugMonograph[]>([]);
+  const [loading,    setLoading]    = useState(false);
+  const [searched,   setSearched]   = useState(false);
+
+  React.useEffect(() => {
+    const q = debouncedQuery.trim();
+    if (q.length < 2) {
+      setProducts([]); setMonographs([]); setSearched(false);
+      return;
     }
-  };
+    setLoading(true);
+    searchVademecum(q)
+      .then(res => { setProducts(res.products); setMonographs(res.monographs); setSearched(true); })
+      .catch(e => Alert.alert('Error', e.message))
+      .finally(() => setLoading(false));
+  }, [debouncedQuery]);
+
+  const hasResults = products.length > 0 || monographs.length > 0;
 
   return (
     <View style={styles.container}>
-      {/* ── Header ── */}
       <View style={styles.header}>
-        <Text style={styles.headerName}>Vadémecum</Text>
-        <Text style={styles.headerId}>Medicamentos</Text>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.eyebrow}>SECMED</Text>
+            <Text style={styles.title}>Vadémecum</Text>
+          </View>
+          <SettingsButton />
+        </View>
+        <Text style={styles.subtitle}>Productos farmacéuticos y monografías clínicas</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-        <View style={[styles.card, shadow.card]}>
-          <TextInput
-            placeholder="Buscar medicamento..."
-            value={query}
-            onChangeText={(text) => {
-              setQuery(text);
-              handleSearch(text);
-            }}
-            style={styles.input}
-            placeholderTextColor={colors.inkSoft}
-          />
-          <TouchableOpacity style={styles.searchBtn} onPress={() => handleSearch()}>
-            <Text style={styles.searchText}>Buscar</Text>
+      <View style={styles.searchWrap}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          value={query} onChangeText={setQuery}
+          placeholder="Buscar por nombre comercial o principio activo…"
+          placeholderTextColor={colors.inkSoft}
+          autoCapitalize="none"
+          autoFocus={!!initialQuery}
+        />
+        {query.length > 0 && (
+          <TouchableOpacity onPress={() => setQuery('')}>
+            <Text style={{ color: colors.inkSoft, fontSize: 16, padding: 4 }}>✕</Text>
           </TouchableOpacity>
+        )}
+      </View>
 
-          {loading && (
-            <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 20 }} />
-          )}
+      {loading && <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.lg }} />}
 
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.ef}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => navigation.navigate('VademecumDetail', { ef: item.ef })}
-                style={styles.resultCard}
-              >
-                <Text style={styles.resultName}>{item.nombre}</Text>
-                <Text style={styles.resultSub}>{item.principio_activo}</Text>
-              </TouchableOpacity>
-            )}
-          />
+      {!loading && query.trim().length >= 2 && !hasResults && searched && (
+        <View style={styles.empty}>
+          <Text style={styles.emptyIcon}>💊</Text>
+          <Text style={styles.emptyTitle}>Sin resultados</Text>
+          <Text style={styles.emptyBody}>No se encontró "{query}" en el vadémecum.</Text>
         </View>
-      </ScrollView>
+      )}
+
+      {!loading && query.trim().length < 2 && (
+        <View style={styles.empty}>
+          <Text style={styles.emptyIcon}>📖</Text>
+          <Text style={styles.emptyTitle}>Busca un medicamento</Text>
+          <Text style={styles.emptyBody}>Escribe al menos 2 letras del nombre comercial o principio activo.</Text>
+        </View>
+      )}
+
+      {!loading && hasResults && (
+        <FlatList
+          data={[
+            ...(monographs.length > 0 ? [{ type: 'header' as const, label: 'Monografías (DCI)' }] : []),
+            ...monographs.map(m => ({ type: 'monograph' as const, data: m })),
+            ...(products.length > 0 ? [{ type: 'header' as const, label: 'Productos comerciales' }] : []),
+            ...products.map(p => ({ type: 'product' as const, data: p })),
+          ]}
+          keyExtractor={(item, i) =>
+            item.type === 'header' ? `h-${i}` :
+            item.type === 'monograph' ? `m-${item.data.id}` : `p-${item.data.ef}`
+          }
+          contentContainerStyle={{ padding: spacing.md, paddingBottom: 100 }}
+          showsVerticalScrollIndicator={false}
+          renderItem={({ item }) => {
+            if (item.type === 'header') {
+              return <Text style={styles.sectionLabel}>{item.label}</Text>;
+            }
+            if (item.type === 'monograph') {
+              const m = item.data;
+              return (
+                <TouchableOpacity
+                  style={[styles.card, shadow.card]} activeOpacity={0.82}
+                  onPress={() => navigation.navigate('VademecumDetail', { monographId: m.id, dci: m.dci })}
+                >
+                  <View style={styles.cardIconWrap}><Text style={styles.cardIcon}>🧬</Text></View>
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.cardName}>{m.dci}</Text>
+                    <Text style={styles.cardSub}>{m.atc ? `ATC ${m.atc}` : 'Monografía clínica'}{m.via ? ` · ${m.via}` : ''}</Text>
+                  </View>
+                  <Text style={styles.chevron}>›</Text>
+                </TouchableOpacity>
+              );
+            }
+            const p = item.data;
+            return (
+              <TouchableOpacity
+                style={[styles.card, shadow.card, !p.is_active && styles.cardInactive]} activeOpacity={0.82}
+                onPress={() => navigation.navigate('VademecumDetail', { ef: p.ef, productName: p.nombre })}
+              >
+                <View style={[styles.cardIconWrap, { backgroundColor: colors.bgSoft }]}><Text style={styles.cardIcon}>💊</Text></View>
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardName}>{p.nombre}</Text>
+                  <Text style={styles.cardSub}>{p.principio_activo}</Text>
+                  {!p.is_active && <Text style={styles.inactiveTag}>Registro no vigente</Text>}
+                </View>
+                <Text style={styles.chevron}>›</Text>
+              </TouchableOpacity>
+            );
+          }}
+        />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: colors.bg },
-  header:      { backgroundColor: colors.white, paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  headerName:  { fontSize: 24, fontWeight: '700', color: colors.ink, letterSpacing: -0.4 },
-  headerId:    { fontFamily: 'Courier', fontSize: 11, color: colors.inkSoft, marginTop: 2 },
-  body:        { padding: spacing.md, paddingBottom: 80 },
-  card:        { backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
-  input:       { borderWidth: 1, borderColor: colors.line, borderRadius: radius.md, padding: 12, fontSize: 14, color: colors.ink, marginBottom: spacing.sm },
-  searchBtn:   { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: 12, alignItems: 'center', marginBottom: spacing.md },
-  searchText:  { color: colors.white, fontWeight: '600', fontSize: 14 },
-  resultCard:  { backgroundColor: colors.bgSoft, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm },
-  resultName:  { fontSize: 16, fontWeight: '600', color: colors.ink, marginBottom: 4 },
-  resultSub:   { fontSize: 13, color: colors.inkSoft },
+  container:      { flex: 1, backgroundColor: colors.bg },
+  header:         { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
+  headerRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  eyebrow:        { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
+  title:          { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
+  subtitle:       { fontSize: 13, color: colors.inkSoft, marginTop: 3 },
+  searchWrap:     { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgSoft, borderRadius: radius.md, marginHorizontal: spacing.md, marginTop: spacing.md, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  searchIcon:     { fontSize: 15 },
+  searchInput:    { flex: 1, fontSize: 15, color: colors.ink },
+  sectionLabel:   { fontSize: 11, fontWeight: '700', color: colors.primary, letterSpacing: 1.2, marginTop: spacing.md, marginBottom: spacing.sm },
+  card:           { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: 10, gap: 12 },
+  cardInactive:   { opacity: 0.6 },
+  cardIconWrap:   { width: 42, height: 42, borderRadius: 21, backgroundColor: colors.secondarySoft, alignItems: 'center', justifyContent: 'center' },
+  cardIcon:       { fontSize: 18 },
+  cardInfo:       { flex: 1 },
+  cardName:       { fontSize: 15, fontWeight: '600', color: colors.ink },
+  cardSub:        { fontSize: 12, color: colors.inkSoft, marginTop: 2 },
+  inactiveTag:    { fontSize: 10, color: colors.danger, marginTop: 3, fontWeight: '500' },
+  chevron:        { fontSize: 22, color: colors.inkSoft },
+  empty:          { alignItems: 'center', paddingTop: spacing.xxl, paddingHorizontal: spacing.xl },
+  emptyIcon:      { fontSize: 40, marginBottom: spacing.md },
+  emptyTitle:     { fontSize: 17, fontWeight: '600', color: colors.ink, marginBottom: 6 },
+  emptyBody:      { fontSize: 14, color: colors.inkSoft, textAlign: 'center', lineHeight: 20 },
 });

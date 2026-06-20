@@ -118,6 +118,32 @@ export async function loginWithBiometrics(): Promise<PublicDoctor> {
   return pub;
 }
 
+// ── Cambio de clave ──────────────────────────────────────────────────────────
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const raw = await SecureStore.getItemAsync(KEY_DOCTOR);
+  if (!raw) throw new Error('No hay ningún médico registrado en este dispositivo.');
+  const doctor: Doctor = JSON.parse(raw);
+  const currentHash = await hashPassword(currentPassword);
+  if (currentHash !== doctor.passHash) throw new Error('La clave actual no es correcta.');
+  const newHash = await hashPassword(newPassword);
+  await SecureStore.setItemAsync(KEY_DOCTOR, JSON.stringify({ ...doctor, passHash: newHash }));
+}
+
+// ── Preferencia de biometría (decidida por el médico, no solo por el hardware) ─
+const KEY_BIOMETRIC_ENABLED = 'secmed.biometric_enabled';
+
+export async function isBiometricEnabled(): Promise<boolean> {
+  return (await SecureStore.getItemAsync(KEY_BIOMETRIC_ENABLED)) === 'true';
+}
+
+export async function setBiometricEnabled(enabled: boolean): Promise<void> {
+  if (enabled) {
+    await SecureStore.setItemAsync(KEY_BIOMETRIC_ENABLED, 'true');
+  } else {
+    await SecureStore.deleteItemAsync(KEY_BIOMETRIC_ENABLED);
+  }
+}
+
 // ── Sesión activa ─────────────────────────────────────────────────────────────
 export async function hasActiveSession(): Promise<boolean> {
   return (await SecureStore.getItemAsync(KEY_SESSION)) === 'active';

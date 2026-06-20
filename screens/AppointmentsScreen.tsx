@@ -10,6 +10,7 @@ import {
 } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { APPT_STATUS_COLORS, APPT_STATUS_LABELS } from '../utils/constants';
+import { SettingsButton } from '../components/SettingsButton';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -221,9 +222,12 @@ export default function AppointmentsScreen() {
         <Text style={styles.eyebrow}>SECMED</Text>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Agenda</Text>
-          <TouchableOpacity style={styles.addBtn} onPress={() => setShowNew(true)} activeOpacity={0.8}>
-            <Text style={styles.addBtnText}>+ Cita</Text>
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.addBtn} onPress={() => setShowNew(true)} activeOpacity={0.8}>
+              <Text style={styles.addBtnText}>+ Cita</Text>
+            </TouchableOpacity>
+            <SettingsButton />
+          </View>
         </View>
       </View>
 
@@ -283,6 +287,7 @@ const styles = StyleSheet.create({
   title:              { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
   addBtn:             { backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 16, paddingVertical: 9 },
   addBtnText:         { color: colors.white, fontSize: 13, fontWeight: '600' },
+  headerActions:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
   filtersRow:         { backgroundColor: colors.white, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: colors.line },
   filterChip:         { paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.line, backgroundColor: colors.white },
   filterChipActive:   { backgroundColor: colors.primary, borderColor: colors.primary },

@@ -10,6 +10,7 @@ import {
 } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { BLOOD_TYPES } from '../utils/constants';
+import { SettingsButton } from '../components/SettingsButton';
 
 type Mode = 'blood_type' | 'last_visit';
 
@@ -74,8 +75,13 @@ export default function PortalScreen({ route }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>SECMED</Text>
-        <Text style={styles.title}>ZK Portal</Text>
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.eyebrow}>SECMED</Text>
+            <Text style={styles.title}>ZK Portal</Text>
+          </View>
+          <SettingsButton />
+        </View>
         <Text style={styles.subtitle}>Emite y verifica certificados sin revelar el expediente</Text>
       </View>
 
@@ -251,6 +257,7 @@ export default function PortalScreen({ route }: any) {
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: colors.bg },
   header:           { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
+  headerRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   eyebrow:          { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
   title:            { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
   subtitle:         { fontSize: 13, color: colors.inkSoft, marginTop: 3 },

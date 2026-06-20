@@ -169,6 +169,13 @@ export default function ConsultationScreen({ route, navigation }: any) {
                 {loading ? <ActivityIndicator color={colors.primary} size="small" /> : <Text style={styles.secBtnText}>📋 Informe</Text>}
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={styles.vademecumBtn}
+              onPress={() => navigation.navigate('Vademecum', { initialQuery: soap.plan?.split(/[ ,]/)[0] ?? '' })}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.vademecumBtnText}>📖 Consultar vadémecum</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.primaryBtn} onPress={handleDiagnose} disabled={loading} activeOpacity={0.8}>
               {loading ? <ActivityIndicator color={colors.white} /> : <Text style={styles.primaryBtnText}>🧠 Consideraciones clínicas →</Text>}
             </TouchableOpacity>
@@ -240,6 +247,12 @@ export default function ConsultationScreen({ route, navigation }: any) {
                   <Text style={styles.medName}>{m.nombre}</Text>
                   <Text style={styles.medDetail}>{m.presentacion} · {m.cantidad}</Text>
                   <Text style={styles.medIndic}>{m.indicaciones}</Text>
+                  <TouchableOpacity
+                    style={styles.medVademecumLink}
+                    onPress={() => navigation.navigate('Vademecum', { initialQuery: m.nombre })}
+                  >
+                    <Text style={styles.medVademecumLinkText}>📖 Ver en vadémecum</Text>
+                  </TouchableOpacity>
                 </View>
               ))
             }
@@ -345,6 +358,10 @@ const styles = StyleSheet.create({
   secBtnText:     { color: colors.primary, fontSize: 14, fontWeight: '600' },
   ghostBtn:       { alignItems: 'center', padding: 12 },
   ghostBtnText:   { color: colors.inkSoft, fontSize: 14, fontWeight: '500' },
+  vademecumBtn:      { borderWidth: 1.5, borderColor: colors.secondary, borderRadius: radius.md, padding: 13, alignItems: 'center', marginBottom: spacing.sm },
+  vademecumBtnText:  { color: colors.secondary, fontSize: 14, fontWeight: '600' },
+  medVademecumLink:     { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: colors.line },
+  medVademecumLinkText: { fontSize: 12, fontWeight: '600', color: colors.secondary },
   actionRow:      { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.sm },
   card:           { backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   soapLabel:      { fontSize: 10, fontWeight: '700', color: colors.primary, letterSpacing: 1.5, marginBottom: 8 },
