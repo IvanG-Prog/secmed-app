@@ -10,6 +10,25 @@ Es el cliente **exclusivo para médicos** del sistema SecMed. El backend
 app solo consume las funciones que le corresponden al médico (pacientes,
 agenda, consulta con IA, documentos, vadémecum y el portal ZK).
 
+## Nota sobre la versión de Expo (importante)
+
+El proyecto está fijado a **Expo SDK 54** a propósito, aunque ya existan SDKs
+más nuevos (55/56/57). Desde mediados de 2026, Apple ha tardado meses en
+aprobar las versiones nuevas de la app **Expo Go** en las tiendas — la que
+se descarga desde Play Store / App Store sigue atada al SDK 54. Si subes el
+paquete `expo` a una versión mayor, la app de Expo Go de tu teléfono no va
+a poder abrir el proyecto y vas a ver un error tipo:
+
+```
+Invariant Violation: TurboModuleRegistry.getEnforcing(...):
+'PlatformConstants' could not be found.
+```
+
+No es un bug del proyecto — es el SDK del proyecto vs. el SDK de Expo Go
+sin coincidir. Si en el futuro quieres subir de SDK, primero confirma que
+la Expo Go de las tiendas ya soporte esa versión (o usa un development
+build en vez de Expo Go).
+
 ## Requisitos
 
 - Node.js 18 o superior
@@ -41,9 +60,7 @@ Esto abre el Metro Bundler. Desde ahí puedes:
 
 ```
 https://secmed-demo-production.up.railway.app/api
-```
-
-No necesitas levantar nada más para probar la app tal cual está. Si
+```No necesitas levantar nada más para probar la app tal cual está. Si
 quieres apuntar a un backend corriendo en tu máquina (repo `secmed-demo`),
 cambia `BASE_URL` en `utils/api.ts` por, por ejemplo, `http://TU_IP_LOCAL:8080/api`
 (usa la IP de tu máquina en la red local, no `localhost`, porque el
