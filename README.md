@@ -10,6 +10,32 @@ Es el cliente **exclusivo para médicos** del sistema SecMed. El backend
 app solo consume las funciones que le corresponden al médico (pacientes,
 agenda, consulta con IA, documentos, vadémecum y el portal ZK).
 
+## Nota sobre versiones nativas (React Native / Expo)
+
+`expo` fija la versión exacta de `react-native` y de cada paquete
+`expo-*` que necesita — no son independientes entre sí. Si actualizas
+`expo` sin actualizar en el mismo movimiento `react-native`, `react` y
+todos los `expo-*`/`react-native-*` a lo que ese `expo` espera, la app
+compila y arranca el bundler sin quejarse, pero **crashea al abrir en
+el teléfono** con algo así:
+
+```
+Invariant Violation: TurboModuleRegistry.getEnforcing(...):
+'PlatformConstants' could not be found.
+```
+
+Para saber exactamente qué versión espera cada paquete para el `expo`
+que tienes instalado (sin depender de internet, útil si
+`npx expo install --check` falla por red):
+
+```bash
+node -e "console.log(require('./node_modules/expo/bundledNativeModules.json'))"
+```
+
+Ese archivo es la fuente de verdad; de ahí salen las versiones fijadas
+en este `package.json`. Si en algún momento ves ese error de
+`PlatformConstants`, compara ahí antes que nada.
+
 ## Requisitos
 
 - Node.js 18 o superior
