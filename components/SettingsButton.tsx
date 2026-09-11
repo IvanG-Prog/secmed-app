@@ -9,6 +9,7 @@
 import React from 'react';
 import { TouchableOpacity, Image, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/tokens';
 import { useSession } from '../hooks/useSession';
 
@@ -23,7 +24,7 @@ export function SettingsButton() {
 
   const initials = doctor?.name
     ? doctor.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()
-    : '👤';
+    : null;
 
   return (
     <TouchableOpacity
@@ -34,8 +35,10 @@ export function SettingsButton() {
     >
       {doctorPhotoUrl ? (
         <Image source={{ uri: doctorPhotoUrl }} style={styles.icon} />
-      ) : (
+      ) : initials ? (
         <Text style={styles.fallback}>{initials}</Text>
+      ) : (
+        <Ionicons name="person" size={17} color={colors.secondary} />
       )}
     </TouchableOpacity>
   );

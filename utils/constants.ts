@@ -28,8 +28,13 @@ export const RISK_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export const DOC_TYPE_LABELS: Record<string, string> = {
-  receta:  '💊 Receta',
-  informe: '📋 Informe',
+  receta:  'Receta',
+  informe: 'Informe',
+};
+
+export const DOC_TYPE_ICONS: Record<string, string> = {
+  receta:  'medkit-outline',
+  informe: 'document-text-outline',
 };
 
 export const VADEMECUM_MIN_QUERY_LENGTH = 2;

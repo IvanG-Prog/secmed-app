@@ -10,6 +10,7 @@ import {
   SoapNote, DiagnoseResponse, ReportContent, Medication,
 } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
+import { HomeLogo } from '../components/HomeLogo';
 
 type RecordingState = 'idle' | 'recording' | 'transcribing';
 
@@ -172,9 +173,12 @@ export default function ConsultationScreen({ route, navigation }: any) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>Volver</Text>
-        </TouchableOpacity>
+        <View style={styles.backRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>Volver</Text>
+          </TouchableOpacity>
+          <HomeLogo size={22} />
+        </View>
         <Text style={styles.headerTitle}>Consulta</Text>
         <Text style={styles.headerSub}>{patientName}</Text>
       </View>
@@ -499,7 +503,8 @@ export default function ConsultationScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: colors.bg },
   header:           { backgroundColor: colors.white, paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  backText:         { fontSize: 14, fontWeight: '500', color: colors.primary, marginBottom: 6 },
+  backText:         { fontSize: 14, fontWeight: '500', color: colors.primary },
+  backRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
   headerTitle:      { fontSize: 20, fontWeight: '700', color: colors.ink, letterSpacing: -0.3 },
   headerSub:        { fontSize: 13, color: colors.inkSoft, marginTop: 2 },
   progressBar:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.xl, paddingVertical: 12, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },

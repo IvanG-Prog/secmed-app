@@ -3,8 +3,12 @@
 //
 // El RootNavigator usa `status` para decidir qué stack mostrar:
 //   'loading'        → splash mientras se consulta SecureStore
-//   'unauthenticated' → no hay sesión activa (HomeScreen / Login / Register)
-//   'authenticated'   → hay sesión activa (Tabs de la app clínica)
+//   'unauthenticated' → hace falta clave o huella (HomeScreen / Login / Register)
+//   'authenticated'   → ya se autenticó en este arranque (Tabs de la app clínica)
+//
+// Autenticarse dura hasta que se cierra la app (no hay "recordarme"): cada
+// arranque en frío exige clave o huella de nuevo, aunque ya exista un
+// médico registrado en el dispositivo.
 //
 // No usa Context de React a propósito: para una app de este tamaño un hook
 // simple con un módulo de estado compartido es suficiente y evita el
@@ -13,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { useCallback, useEffect, useState } from 'react';
 import {
-  hasActiveSession, hasRegisteredDoctor, getStoredDoctor,
+  hasRegisteredDoctor,
   loginWithPassword, loginWithBiometrics, registerDoctor,
   logout as authLogout, resetLocalAccount,
   PublicDoctor,
@@ -37,13 +41,14 @@ function setState(next: Partial<SessionState>) {
 }
 
 async function bootstrap() {
-  const [active, registered] = await Promise.all([hasActiveSession(), hasRegisteredDoctor()]);
-  if (active) {
-    const doctor = await getStoredDoctor();
-    setState({ status: 'authenticated', doctor, hasRegistered: true });
-  } else {
-    setState({ status: 'unauthenticated', doctor: null, hasRegistered: registered });
-  }
+  // Por seguridad (la app maneja historia clínica), cada arranque en frío
+  // exige volver a autenticarse (clave o huella) aunque ya exista un
+  // médico registrado en el dispositivo. Antes se guardaba una bandera de
+  // "sesión activa" que nunca expiraba, así que reabrir la app después de
+  // días/semanas entraba directo al panel sin pedir nada — eso ya no pasa:
+  // el flag de sesión activa dejó de usarse para saltarse el login.
+  const registered = await hasRegisteredDoctor();
+  setState({ status: 'unauthenticated', doctor: null, hasRegistered: registered });
 }
 bootstrap();
 

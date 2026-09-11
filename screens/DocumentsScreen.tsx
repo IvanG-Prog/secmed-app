@@ -4,13 +4,15 @@ import {
   ScrollView, Alert, ActivityIndicator, StyleSheet, RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import {
   listDocuments, getDocument, deliverDocument, verifyDocument,
   DocumentSummary, DocumentDetail,
 } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
-import { DOC_TYPE_LABELS } from '../utils/constants';
+import { DOC_TYPE_LABELS, DOC_TYPE_ICONS } from '../utils/constants';
 import { SettingsButton } from '../components/SettingsButton';
+import { HomeLogo } from '../components/HomeLogo';
 
 function fmtDate(ts: number) {
   return new Date(ts * 1000).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -92,7 +94,7 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
       <View style={styles.modalCont}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle} numberOfLines={2}>{doc?.title ?? '…'}</Text>
-          <TouchableOpacity onPress={onClose}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={20} color={colors.inkSoft} /></TouchableOpacity>
         </View>
 
         {loading
@@ -101,7 +103,10 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
             <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
               {/* Meta */}
               <View style={styles.metaRow}>
-                <Text style={styles.metaTag}>{DOC_TYPE_LABELS[doc.doc_type] ?? doc.doc_type}</Text>
+                <View style={styles.metaTag}>
+                  <Ionicons name={(DOC_TYPE_ICONS[doc.doc_type] ?? 'document-outline') as any} size={13} color={colors.primary} />
+                  <Text style={styles.metaTagText}>{DOC_TYPE_LABELS[doc.doc_type] ?? doc.doc_type}</Text>
+                </View>
                 {doc.delivered && <Text style={styles.deliveredTag}>✓ Entregado</Text>}
               </View>
               <Text style={styles.metaPatient}>{doc.patient_name}</Text>
@@ -119,7 +124,12 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
 
               {/* Verificación de integridad */}
               <TouchableOpacity style={styles.secBtn} onPress={handleVerify} disabled={verifying} activeOpacity={0.8}>
-                {verifying ? <ActivityIndicator color={colors.primary} size="small" /> : <Text style={styles.secBtnText}>🔐 Verificar integridad (Poseidon)</Text>}
+                {verifying ? <ActivityIndicator color={colors.primary} size="small" /> : (
+                  <View style={styles.secBtnRow}>
+                    <Ionicons name="shield-checkmark-outline" size={16} color={colors.primary} />
+                    <Text style={styles.secBtnText}>Verificar integridad (Poseidon)</Text>
+                  </View>
+                )}
               </TouchableOpacity>
 
               {verified && (
@@ -176,11 +186,12 @@ export default function DocumentsScreen({ route }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.eyebrowRow}>
+          <HomeLogo size={14} />
+          <Text style={styles.eyebrow}>SECMED</Text>
+        </View>
         <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.eyebrow}>SECMED</Text>
-            <Text style={styles.title}>{patientName ? `Docs · ${patientName}` : 'Documentos'}</Text>
-          </View>
+          <Text style={styles.title}>{patientName ? `Docs · ${patientName}` : 'Documentos'}</Text>
           <SettingsButton />
         </View>
       </View>
@@ -205,7 +216,7 @@ export default function DocumentsScreen({ route }: any) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', paddingTop: 60 }}>
-            <Text style={{ fontSize: 36, marginBottom: spacing.md }}>📄</Text>
+            <Ionicons name="document-text-outline" size={36} color={colors.inkSoft} style={{ marginBottom: spacing.md }} />
             <Text style={{ fontSize: 17, fontWeight: '600', color: colors.ink }}>Sin documentos</Text>
             <Text style={{ color: colors.inkSoft, textAlign: 'center', marginTop: 6, maxWidth: 260 }}>
               Los documentos se generan desde la pantalla de Consulta.
@@ -214,7 +225,13 @@ export default function DocumentsScreen({ route }: any) {
         }
         renderItem={({ item }) => (
           <TouchableOpacity style={[styles.docCard, shadow.card]} activeOpacity={0.82} onPress={() => setOpenDocId(item.id)}>
-            <Text style={styles.docIcon}>{item.doc_type === 'receta' ? '💊' : '📋'}</Text>
+            <View style={styles.docIconWrap}>
+              <Ionicons
+                name={(DOC_TYPE_ICONS[item.doc_type] ?? 'document-outline') as any}
+                size={18}
+                color={colors.primary}
+              />
+            </View>
             <View style={styles.docInfo}>
               <Text style={styles.docTitle} numberOfLines={2}>{item.title}</Text>
               <Text style={styles.docPatient}>{item.patient_name}</Text>
@@ -237,7 +254,8 @@ const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: colors.bg },
   header:           { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
   headerRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  eyebrow:          { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
+  eyebrow:          { fontSize: 10, color: colors.primary, letterSpacing: 2, fontFamily: 'Courier' },
+  eyebrowRow:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
   title:            { fontSize: 26, fontWeight: '700', color: colors.ink, letterSpacing: -0.4 },
   filterRow:        { flexDirection: 'row', gap: 8, padding: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
   filterChip:       { paddingHorizontal: 14, paddingVertical: 7, borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.line },
@@ -245,7 +263,7 @@ const styles = StyleSheet.create({
   filterText:       { fontSize: 13, fontWeight: '500', color: colors.inkSoft },
   filterTextActive: { color: colors.white },
   docCard:          { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: 10, gap: 12 },
-  docIcon:          { fontSize: 28 },
+  docIconWrap:      { width: 38, height: 38, borderRadius: 19, backgroundColor: colors.bgSoft, alignItems: 'center', justifyContent: 'center' },
   docInfo:          { flex: 1 },
   docTitle:         { fontSize: 14, fontWeight: '600', color: colors.ink, marginBottom: 3 },
   docPatient:       { fontSize: 12, color: colors.inkSoft },
@@ -259,7 +277,8 @@ const styles = StyleSheet.create({
   modalTitle:       { flex: 1, fontSize: 18, fontWeight: '700', color: colors.ink },
   modalClose:       { fontSize: 20, color: colors.inkSoft },
   metaRow:          { flexDirection: 'row', gap: 8, marginBottom: 6 },
-  metaTag:          { backgroundColor: colors.bgSoft, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 3, fontSize: 12, color: colors.primary, fontWeight: '600' },
+  metaTag:          { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.bgSoft, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 3 },
+  metaTagText:      { fontSize: 12, color: colors.primary, fontWeight: '600' },
   deliveredTag:     { backgroundColor: colors.secondarySoft, borderRadius: radius.full, paddingHorizontal: 10, paddingVertical: 3, fontSize: 12, color: colors.secondary, fontWeight: '600' },
   metaPatient:      { fontSize: 16, fontWeight: '600', color: colors.ink, marginBottom: 2 },
   metaDate:         { fontSize: 12, color: colors.inkSoft, marginBottom: spacing.md },
@@ -274,6 +293,7 @@ const styles = StyleSheet.create({
   primaryBtnText:   { color: colors.white, fontSize: 15, fontWeight: '600' },
   secBtn:           { borderWidth: 1.5, borderColor: colors.primary, borderRadius: radius.md, padding: 14, alignItems: 'center', marginBottom: spacing.md },
   secBtnText:       { color: colors.primary, fontSize: 14, fontWeight: '600' },
+  secBtnRow:        { flexDirection: 'row', alignItems: 'center', gap: 8 },
   verifyResult:     { borderWidth: 1.5, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
   verifyStatus:     { fontSize: 15, fontWeight: '700', marginBottom: 8 },
   verifyHash:       { fontFamily: 'Courier', fontSize: 10, color: colors.inkSoft, marginBottom: 3 },

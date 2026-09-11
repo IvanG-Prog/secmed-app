@@ -8,6 +8,7 @@ import {
   ProductDetail, DrugMonograph,
 } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
+import { HomeLogo } from '../components/HomeLogo';
 
 function Block({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
@@ -80,9 +81,12 @@ export default function VademecumDetailScreen({ route, navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Vadémecum</Text>
-        </TouchableOpacity>
+        <View style={styles.backRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>‹ Vadémecum</Text>
+          </TouchableOpacity>
+          <HomeLogo size={22} />
+        </View>
         <Text style={styles.headerTitle} numberOfLines={2}>{title}</Text>
       </View>
 
@@ -140,7 +144,8 @@ export default function VademecumDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: colors.bg },
   header:           { backgroundColor: colors.white, paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  backText:         { fontSize: 14, fontWeight: '500', color: colors.primary, marginBottom: 8 },
+  backText:         { fontSize: 14, fontWeight: '500', color: colors.primary },
+  backRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   headerTitle:      { fontSize: 19, fontWeight: '700', color: colors.ink },
   body:             { padding: spacing.md, paddingBottom: 80 },
   headerCard:       { backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },

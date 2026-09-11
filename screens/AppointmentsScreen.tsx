@@ -4,6 +4,7 @@ import {
   ScrollView, Alert, ActivityIndicator, StyleSheet, RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import {
   listAppointments, createAppointment, updateAppointment,
   deleteAppointment, listPatients, Appointment, PatientSummary,
@@ -11,6 +12,7 @@ import {
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { APPT_STATUS_COLORS, APPT_STATUS_LABELS } from '../utils/constants';
 import { SettingsButton } from '../components/SettingsButton';
+import { HomeLogo } from '../components/HomeLogo';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -86,7 +88,7 @@ function NewApptModal({ visible, onClose, onCreated }: {
       <View style={styles.modalCont}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>Nueva cita</Text>
-          <TouchableOpacity onPress={onClose}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={20} color={colors.inkSoft} /></TouchableOpacity>
         </View>
         <ScrollView contentContainerStyle={{ padding: spacing.lg, paddingBottom: 80 }} keyboardShouldPersistTaps="handled">
           <Text style={styles.fieldLabel}>Paciente *</Text>
@@ -163,7 +165,7 @@ function EditStatusModal({ appt, onClose, onUpdated }: {
       <View style={styles.modalCont}>
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>{fmtDate(appt.starts_at)} {fmtTime(appt.starts_at)}</Text>
-          <TouchableOpacity onPress={onClose}><Text style={styles.modalClose}>✕</Text></TouchableOpacity>
+          <TouchableOpacity onPress={onClose}><Ionicons name="close" size={20} color={colors.inkSoft} /></TouchableOpacity>
         </View>
         <View style={{ padding: spacing.lg }}>
           <Text style={styles.editPatient}>{appt.patient_name}</Text>
@@ -180,7 +182,8 @@ function EditStatusModal({ appt, onClose, onUpdated }: {
             ))
           }
           <TouchableOpacity style={styles.deleteBtn} onPress={remove}>
-            <Text style={styles.deleteBtnText}>🗑️ Eliminar cita</Text>
+            <Ionicons name="trash-outline" size={16} color={colors.danger} />
+            <Text style={styles.deleteBtnText}>Eliminar cita</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -219,7 +222,10 @@ export default function AppointmentsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>SECMED</Text>
+        <View style={styles.eyebrowRow}>
+          <HomeLogo size={14} />
+          <Text style={styles.eyebrow}>SECMED</Text>
+        </View>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Agenda</Text>
           <View style={styles.headerActions}>
@@ -251,7 +257,7 @@ export default function AppointmentsScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', paddingTop: spacing.xxl }}>
-            <Text style={{ fontSize: 36, marginBottom: spacing.md }}>📅</Text>
+            <Ionicons name="calendar-outline" size={36} color={colors.inkSoft} style={{ marginBottom: spacing.md }} />
             <Text style={{ fontSize: 17, fontWeight: '600', color: colors.ink }}>Sin citas</Text>
             <Text style={{ color: colors.inkSoft, textAlign: 'center', marginTop: 6 }}>Agrega una con el botón "+ Cita".</Text>
           </View>
@@ -282,7 +288,8 @@ export default function AppointmentsScreen() {
 const styles = StyleSheet.create({
   container:          { flex: 1, backgroundColor: colors.bg },
   header:             { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.sm, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
-  eyebrow:            { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
+  eyebrow:            { fontSize: 10, color: colors.primary, letterSpacing: 2, fontFamily: 'Courier' },
+  eyebrowRow:         { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
   headerRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingBottom: spacing.sm },
   title:              { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
   addBtn:             { backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 16, paddingVertical: 9 },
@@ -321,6 +328,6 @@ const styles = StyleSheet.create({
   editReason:         { fontSize: 14, color: colors.inkSoft, marginTop: 4 },
   statusOption:       { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.line, marginBottom: 8 },
   statusOptionActive: { borderColor: colors.primary, backgroundColor: colors.bgSoft },
-  deleteBtn:          { alignItems: 'center', padding: 14, marginTop: spacing.md },
+  deleteBtn:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 14, marginTop: spacing.md },
   deleteBtnText:      { color: colors.danger, fontSize: 14, fontWeight: '600' },
 });

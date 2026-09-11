@@ -4,6 +4,7 @@ import {
   StyleSheet, Alert, ActivityIndicator, Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import {
   listPatients, attestBloodType, attestLastVisit, verifyAttestation,
   PatientSummary, AttestResponse, VerifyResponse,
@@ -11,6 +12,7 @@ import {
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { BLOOD_TYPES } from '../utils/constants';
 import { SettingsButton } from '../components/SettingsButton';
+import { HomeLogo } from '../components/HomeLogo';
 
 type Mode = 'blood_type' | 'last_visit';
 
@@ -75,11 +77,12 @@ export default function PortalScreen({ route }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.eyebrowRow}>
+          <HomeLogo size={14} />
+          <Text style={styles.eyebrow}>SECMED</Text>
+        </View>
         <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>SECMED</Text>
-            <Text style={styles.title}>ZK Portal</Text>
-          </View>
+          <Text style={styles.title}>ZK Portal</Text>
           <SettingsButton />
         </View>
         <Text style={styles.subtitle}>Emite y verifica certificados sin revelar el expediente</Text>
@@ -89,7 +92,10 @@ export default function PortalScreen({ route }: any) {
 
         {/* ── EMITIR ── */}
         <View style={[styles.card, shadow.card]}>
-          <Text style={styles.cardTitle}>🔏 Emitir certificado</Text>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="finger-print-outline" size={17} color={colors.ink} />
+            <Text style={styles.cardTitle}>Emitir certificado</Text>
+          </View>
           <Text style={styles.cardDesc}>Genera una prueba Zero-Knowledge sobre un campo del expediente sin revelar ningún otro dato.</Text>
 
           {/* Paciente */}
@@ -99,7 +105,10 @@ export default function PortalScreen({ route }: any) {
               <View style={styles.selectedPt}>
                 <Text style={styles.selectedPtName}>{selectedPatient.name}</Text>
                 <TouchableOpacity onPress={() => { setPatientId(''); setPatientQ(''); }} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-                  <Text style={{ color: colors.danger, fontSize: 12 }}>✕ Cambiar</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Ionicons name="close" size={13} color={colors.danger} />
+                <Text style={{ color: colors.danger, fontSize: 12 }}>Cambiar</Text>
+              </View>
                 </TouchableOpacity>
               </View>
             )
@@ -127,12 +136,18 @@ export default function PortalScreen({ route }: any) {
             <TouchableOpacity
               style={[styles.modeBtn, mode === 'blood_type' && styles.modeBtnActive]}
               onPress={() => setMode('blood_type')}>
-              <Text style={[styles.modeBtnText, mode === 'blood_type' && styles.modeBtnTextActive]}>🩸 Tipo de sangre</Text>
+              <View style={styles.modeBtnInner}>
+              <Ionicons name="water-outline" size={15} color={mode === 'blood_type' ? colors.white : colors.ink} />
+              <Text style={[styles.modeBtnText, mode === 'blood_type' && styles.modeBtnTextActive]}>Tipo de sangre</Text>
+            </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.modeBtn, mode === 'last_visit' && styles.modeBtnActive]}
               onPress={() => setMode('last_visit')}>
-              <Text style={[styles.modeBtnText, mode === 'last_visit' && styles.modeBtnTextActive]}>📆 Visita reciente</Text>
+              <View style={styles.modeBtnInner}>
+              <Ionicons name="calendar-outline" size={15} color={mode === 'last_visit' ? colors.white : colors.ink} />
+              <Text style={[styles.modeBtnText, mode === 'last_visit' && styles.modeBtnTextActive]}>Visita reciente</Text>
+            </View>
             </TouchableOpacity>
           </View>
 
@@ -169,7 +184,10 @@ export default function PortalScreen({ route }: any) {
         {/* ── Resultado ── */}
         {result && (
           <View style={[styles.card, shadow.card, { borderLeftWidth: 3, borderLeftColor: colors.secondary }]}>
-            <Text style={styles.resultTitle}>✅ Certificado emitido</Text>
+            <View style={styles.cardTitleRow}>
+              <Ionicons name="checkmark-circle" size={17} color={colors.success} />
+              <Text style={styles.resultTitle}>Certificado emitido</Text>
+            </View>
             <Text style={styles.resultClaim}>{result.claim}</Text>
 
             <View style={styles.attRow}>
@@ -196,7 +214,10 @@ export default function PortalScreen({ route }: any) {
 
         {/* ── VERIFICAR ── */}
         <View style={[styles.card, shadow.card]}>
-          <Text style={styles.cardTitle}>🔍 Verificar certificado</Text>
+          <View style={styles.cardTitleRow}>
+            <Ionicons name="search-outline" size={17} color={colors.ink} />
+            <Text style={styles.cardTitle}>Verificar certificado</Text>
+          </View>
           <Text style={styles.cardDesc}>Cualquier tercero puede verificar la validez de un certificado introduciendo su ID.</Text>
 
           <Text style={styles.fieldLabel}>ID del certificado (ATT-XXXX)</Text>
@@ -207,7 +228,7 @@ export default function PortalScreen({ route }: any) {
           />
           {result && (
             <TouchableOpacity onPress={() => setVerifyId(result.attestation_id)} style={styles.autoFill}>
-              <Text style={styles.autoFillText}>↑ Usar el certificado recién emitido</Text>
+              <Text style={styles.autoFillText}>Usar el certificado recién emitido</Text>
             </TouchableOpacity>
           )}
 
@@ -217,9 +238,16 @@ export default function PortalScreen({ route }: any) {
 
           {vResult && (
             <View style={[styles.verifyBox, { borderColor: vResult.valid ? colors.secondary : colors.danger }]}>
-              <Text style={[styles.verifyStatus, { color: vResult.valid ? colors.secondary : colors.danger }]}>
-                {vResult.valid ? '✅ Certificado válido' : '❌ Certificado inválido'}
-              </Text>
+              <View style={styles.cardTitleRow}>
+                <Ionicons
+                  name={vResult.valid ? 'checkmark-circle' : 'close-circle'}
+                  size={16}
+                  color={vResult.valid ? colors.secondary : colors.danger}
+                />
+                <Text style={[styles.verifyStatus, { color: vResult.valid ? colors.secondary : colors.danger }]}>
+                  {vResult.valid ? 'Certificado válido' : 'Certificado inválido'}
+                </Text>
+              </View>
               <Text style={styles.verifyClaim}>{vResult.claim}</Text>
               <View style={styles.attRow}>
                 <Text style={styles.attLabel}>Paciente</Text>
@@ -258,12 +286,14 @@ const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: colors.bg },
   header:           { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
   headerRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  eyebrow:          { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
+  eyebrow:          { fontSize: 10, color: colors.primary, letterSpacing: 2, fontFamily: 'Courier' },
+  eyebrowRow:       { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
   title:            { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
   subtitle:         { fontSize: 13, color: colors.inkSoft, marginTop: 3 },
   body:             { padding: spacing.md, paddingBottom: 100 },
   card:             { backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.md },
   cardTitle:        { fontSize: 16, fontWeight: '700', color: colors.ink, marginBottom: 6 },
+  cardTitleRow:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6 },
   cardDesc:         { fontSize: 13, color: colors.inkSoft, lineHeight: 19, marginBottom: spacing.md },
   fieldLabel:       { fontSize: 13, fontWeight: '500', color: colors.inkSoft, marginBottom: 6, marginTop: 4 },
   fieldInput:       { borderWidth: 1.5, borderColor: colors.line, borderRadius: radius.md, padding: 12, fontSize: 15, color: colors.ink, backgroundColor: colors.bgSoft },
@@ -276,6 +306,7 @@ const styles = StyleSheet.create({
   modeBtn:          { flex: 1, padding: 12, borderRadius: radius.md, borderWidth: 1.5, borderColor: colors.line, alignItems: 'center' },
   modeBtnActive:    { backgroundColor: colors.primary, borderColor: colors.primary },
   modeBtnText:      { fontSize: 13, fontWeight: '600', color: colors.inkSoft },
+  modeBtnInner:     { flexDirection: 'row', alignItems: 'center', gap: 6 },
   modeBtnTextActive:{ color: colors.white },
   chip:             { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.full, borderWidth: 1.5, borderColor: colors.line, marginRight: 8, backgroundColor: colors.white },
   chipActive:       { backgroundColor: colors.primary, borderColor: colors.primary },
