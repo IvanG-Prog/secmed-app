@@ -53,6 +53,11 @@ export function useSession() {
   useEffect(() => {
     const listener = (s: SessionState) => setLocal(s);
     listeners.push(listener);
+    // bootstrap() se dispara al cargar el módulo, antes de que este efecto
+    // llegue a suscribirse — si ya resolvió para entonces, el aviso se
+    // pierde y el componente se queda pegado en 'loading'. Sincronizamos
+    // acá con el estado global actual para cubrir esa carrera.
+    setLocal(state);
     return () => { listeners = listeners.filter(l => l !== listener); };
   }, []);
 
