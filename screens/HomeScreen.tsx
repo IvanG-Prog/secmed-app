@@ -33,22 +33,13 @@ export default function HomeScreen({ navigation }: any) {
 
       <View style={styles.footer}>
         {hasRegistered ? (
-          <>
-            <TouchableOpacity
-              style={styles.primaryBtn}
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('Login')}
-            >
-              <Text style={styles.primaryBtnText}>Iniciar sesión</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.ghostBtn}
-              activeOpacity={0.7}
-              onPress={() => navigation.navigate('Register')}
-            >
-              <Text style={styles.ghostBtnText}>Registrar otro médico en este dispositivo</Text>
-            </TouchableOpacity>
-          </>
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.primaryBtnText}>Iniciar sesión</Text>
+          </TouchableOpacity>
         ) : (
           <>
             <TouchableOpacity

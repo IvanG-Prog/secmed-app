@@ -14,7 +14,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 import DashboardScreen from '../screens/Dashboardscreen';
 import PatientsScreen        from '../screens/PatientsScreen';
 import PatientDetailScreen   from '../screens/PatientDetailScreen';
-import ConsultationScreen    from '../screens/ConsultationScreen';
+import ConsultationScreen from '../screens/Consultationscreen';
 import AppointmentsScreen    from '../screens/AppointmentsScreen';
 import DocumentsScreen       from '../screens/DocumentsScreen';
 import PortalScreen          from '../screens/PortalScreen';

@@ -4,7 +4,6 @@ import {
   ActivityIndicator, Linking, RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { useSession } from '../hooks/useSession';
 import { getDashboardStats, DashboardStats } from '../utils/api';
@@ -90,21 +89,15 @@ export default function DashboardScreen({ navigation }: any) {
         contentContainerStyle={{ paddingBottom: 60 }}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={colors.primary} />}
       >
-        {/* Header degradado corporativo */}
-        <LinearGradient
-          colors={['#0C2438', '#15567F', '#1D6FA5']}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={styles.header}
-        >
+        {/* Header — mismo lenguaje visual (blanco, línea inferior) que el resto de la app */}
+        <View style={styles.header}>
           <View style={styles.headerTop}>
             <SecMedMark size={30} />
-            <View style={styles.avatarWrap}>
-              <SettingsButton />
-            </View>
+            <SettingsButton />
           </View>
           <Text style={styles.greeting}>{getGreeting()}{firstName ? `, Dr(a). ${firstName}` : ''}</Text>
           <Text style={styles.subgreeting}>Panel clínico — SecMed</Text>
-        </LinearGradient>
+        </View>
 
         {/* Panel de tendencia: gráfico + número grande con % de cambio */}
         <View style={[styles.trendCard, shadow.card]}>
@@ -202,13 +195,12 @@ export default function DashboardScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: colors.bg },
 
-  header:         { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.xl, borderBottomLeftRadius: radius.lg, borderBottomRightRadius: radius.lg },
+  header:         { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
   headerTop:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.lg },
-  avatarWrap:     { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 20 },
-  greeting:       { fontSize: 22, fontWeight: '700', color: '#fff', letterSpacing: -0.3 },
-  subgreeting:    { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 3 },
+  greeting:       { fontSize: 22, fontWeight: '700', color: colors.ink, letterSpacing: -0.3 },
+  subgreeting:    { fontSize: 13, color: colors.inkSoft, marginTop: 3 },
 
-  trendCard:      { backgroundColor: colors.cardBg, borderRadius: radius.lg, marginHorizontal: spacing.md, marginTop: -28, padding: spacing.md },
+  trendCard:      { backgroundColor: colors.cardBg, borderRadius: radius.lg, marginHorizontal: spacing.md, marginTop: spacing.md, padding: spacing.md },
   trendHeader:    { marginBottom: spacing.sm },
   trendLabel:     { fontSize: 12, color: colors.inkSoft, marginBottom: 4 },
   trendValueRow:  { flexDirection: 'row', alignItems: 'center', gap: 10 },

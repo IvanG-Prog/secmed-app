@@ -3,14 +3,24 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,
 } from 'react-native';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
+import { useSession } from '../hooks/useSession';
 
 export default function DataSettingsScreen({ navigation }: any) {
+  const { resetAccount } = useSession();
+
   const handleExport = () => {
     Alert.alert('Exportar datos', 'Funcionalidad de exportación pendiente en esta demo.');
   };
 
   const handleClear = () => {
-    Alert.alert('Borrar datos locales', 'Esto eliminará todos los datos almacenados en este dispositivo.');
+    Alert.alert(
+      'Borrar datos locales',
+      'Esto eliminará tu registro local (cuenta, clave y preferencias) de este dispositivo. No afecta los datos clínicos en el servidor. Tendrás que registrarte de nuevo.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Borrar', style: 'destructive', onPress: resetAccount },
+      ]
+    );
   };
 
   return (
