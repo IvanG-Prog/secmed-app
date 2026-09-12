@@ -80,15 +80,28 @@ export type Appointment = {
 };
 
 // Documentos
-export type DocType = 'receta' | 'informe';
+export type DocType = 'receta' | 'informe' | 'orden_lab' | 'resultado_lab' | 'resultado_externo' | 'informe_externo' | 'factura';
 export type DocumentSummary = {
   id: string; patient_id: string; patient_name: string;
   doc_type: DocType; title: string; issued_at: number; delivered: boolean;
+  lab_status?: string | null;
+  source?: string | null;
+  file_hash?: string | null;
+  review_status?: string | null;
+  amount?: number | null;
+  currency?: string | null;
 };
 export type DocumentDetail = DocumentSummary & {
   content: any; content_hash: string;
   issuer: string; verify_path: string;
 };
+
+// Documento tiene un escaneo/foto original guardado (viene del flujo de
+// "documento externo": resultado o informe subido como foto/PDF).
+export const hasOriginalFile = (doc: { doc_type: DocType; file_hash?: string | null }) =>
+  !!doc.file_hash && (doc.doc_type === 'resultado_externo' || doc.doc_type === 'informe_externo');
+
+export const documentFileUrl = (id: string) => `${BASE_URL}/documents/${id}/file`;
 
 // ZK
 export type AttestResponse  = { attestation_id: string; verify_path: string; claim: string; issued_at: number };

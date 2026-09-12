@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, ScrollView, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator, Modal,
 } from 'react-native';
-import { useAudioRecorder, AudioModule, RecordingPresets } from 'expo-audio';
+import { useAudioRecorder, AudioModule, RecordingPresets, setAudioModeAsync } from 'expo-audio';
 import {
   scribe, diagnose, generateReport, suggestPrescription,
   createDocument, transcribeAudio,
@@ -25,7 +25,12 @@ function useVoice(onResult: (text: string) => void) {
     try {
       const { granted } = await AudioModule.requestRecordingPermissionsAsync();
       if (!granted) { setError('Permiso de micrófono denegado.'); return; }
-      await recorder.record();
+      // Sin esto, en iOS y algunos Android la sesión de audio queda en
+      // modo "solo reproducción": record() no tira error, pero tampoco
+      // captura nada — parece que graba y no queda ningún audio real.
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
       setState('recording');
     } catch {
       setError('No se pudo iniciar la grabación.');
@@ -37,12 +42,22 @@ function useVoice(onResult: (text: string) => void) {
     try {
       await recorder.stop();
       const uri = recorder.uri;
-      if (!uri) { setState('idle'); return; }
+      if (!uri) {
+        setError('No se generó audio — intenta grabar de nuevo.');
+        setState('idle');
+        return;
+      }
       const { text } = await transcribeAudio(uri);
-      onResult(text);
+      if (!text || !text.trim()) {
+        setError('No se entendió nada en la grabación, intenta de nuevo.');
+      } else {
+        onResult(text);
+      }
     } catch (e: any) {
       setError('Error al transcribir: ' + e.message);
     } finally {
+      // Libera el micrófono de vuelta a modo normal de reproducción.
+      setAudioModeAsync({ allowsRecording: false }).catch(() => {});
       setState('idle');
     }
   }, [recorder, onResult]);
