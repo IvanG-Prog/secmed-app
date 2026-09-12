@@ -3,22 +3,36 @@ import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert,
 } from 'react-native';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
+import { useSession } from '../hooks/useSession';
+import { HomeLogo } from '../components/HomeLogo';
 
 export default function DataSettingsScreen({ navigation }: any) {
+  const { resetAccount } = useSession();
+
   const handleExport = () => {
     Alert.alert('Exportar datos', 'Funcionalidad de exportación pendiente en esta demo.');
   };
 
   const handleClear = () => {
-    Alert.alert('Borrar datos locales', 'Esto eliminará todos los datos almacenados en este dispositivo.');
+    Alert.alert(
+      'Borrar datos locales',
+      'Esto eliminará tu registro local (cuenta, clave y preferencias) de este dispositivo. No afecta los datos clínicos en el servidor. Tendrás que registrarte de nuevo.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Borrar', style: 'destructive', onPress: resetAccount },
+      ]
+    );
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Configuración</Text>
-        </TouchableOpacity>
+        <View style={styles.backRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>‹ Configuración</Text>
+          </TouchableOpacity>
+          <HomeLogo size={22} />
+        </View>
         <Text style={styles.headerTitle}>Mis datos</Text>
       </View>
 
@@ -47,7 +61,8 @@ export default function DataSettingsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: colors.bg },
   header:         { backgroundColor: colors.white, paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  backText:       { fontSize: 14, fontWeight: '500', color: colors.primary, marginBottom: 8 },
+  backText:       { fontSize: 14, fontWeight: '500', color: colors.primary },
+  backRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   headerTitle:    { fontSize: 21, fontWeight: '700', color: colors.ink },
   body:           { padding: spacing.md, paddingBottom: 80 },
   card:           { backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.lg },

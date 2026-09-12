@@ -3,18 +3,20 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { useSession } from '../hooks/useSession';
 import { getBiometricKind, BiometricKind } from '../utils/auth/localAuth';
+import { HomeLogo } from '../components/HomeLogo';
 
 function Row({ icon, label, sublabel, onPress, danger = false, rightText }: {
-  icon: string; label: string; sublabel?: string; onPress: () => void;
+  icon: keyof typeof Ionicons.glyphMap; label: string; sublabel?: string; onPress: () => void;
   danger?: boolean; rightText?: string;
 }) {
   return (
     <TouchableOpacity style={styles.row} activeOpacity={0.7} onPress={onPress}>
       <View style={styles.rowIconWrap}>
-        <Text style={styles.rowIcon}>{icon}</Text>
+        <Ionicons name={icon} size={17} color={danger ? colors.danger : colors.ink} />
       </View>
       <View style={styles.rowInfo}>
         <Text style={[styles.rowLabel, danger && { color: colors.danger }]}>{label}</Text>
@@ -50,9 +52,12 @@ export default function SettingsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Volver</Text>
-        </TouchableOpacity>
+        <View style={styles.backRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>‹ Volver</Text>
+          </TouchableOpacity>
+          <HomeLogo size={22} />
+        </View>
         <Text style={styles.headerTitle}>Configuración</Text>
       </View>
 
@@ -65,7 +70,11 @@ export default function SettingsScreen({ navigation }: any) {
           onPress={() => navigation.navigate('AccountSettings')}
         >
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials || '👤'}</Text>
+            {initials ? (
+              <Text style={styles.avatarText}>{initials}</Text>
+            ) : (
+              <Ionicons name="person" size={20} color={colors.secondary} />
+            )}
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.profileName}>{doctor?.name ?? 'Médico'}</Text>
@@ -76,31 +85,31 @@ export default function SettingsScreen({ navigation }: any) {
 
         <SectionLabel label="CUENTA" />
         <View style={[styles.group, shadow.card]}>
-          <Row icon="🩺" label="Datos profesionales" sublabel="Nombre, colegiatura, correo"
+          <Row icon="medical-outline" label="Datos profesionales" sublabel="Nombre, colegiatura, correo"
             onPress={() => navigation.navigate('AccountSettings')} />
         </View>
 
         <SectionLabel label="SEGURIDAD" />
         <View style={[styles.group, shadow.card]}>
-          <Row icon="🔒" label="Seguridad y acceso" sublabel={`Clave, ${bioLabel.toLowerCase()}`}
+          <Row icon="lock-closed-outline" label="Seguridad y acceso" sublabel={`Clave, ${bioLabel.toLowerCase()}`}
             onPress={() => navigation.navigate('SecuritySettings')} />
         </View>
 
         <SectionLabel label="PRIVACIDAD" />
         <View style={[styles.group, shadow.card]}>
-          <Row icon="🛡️" label="Privacidad y certificados ZK" sublabel="Qué se comparte y cómo"
+          <Row icon="shield-checkmark-outline" label="Privacidad y certificados ZK" sublabel="Qué se comparte y cómo"
             onPress={() => navigation.navigate('PrivacySettings')} />
         </View>
 
         <SectionLabel label="DATOS" />
         <View style={[styles.group, shadow.card]}>
-          <Row icon="🗄️" label="Mis datos" sublabel="Exportar, servidor, almacenamiento local"
+          <Row icon="server-outline" label="Mis datos" sublabel="Exportar, servidor, almacenamiento local"
             onPress={() => navigation.navigate('DataSettings')} />
         </View>
 
         <SectionLabel label="SESIÓN" />
         <View style={[styles.group, shadow.card]}>
-          <Row icon="🚪" label="Cerrar sesión" onPress={handleLogout} danger />
+          <Row icon="log-out-outline" label="Cerrar sesión" onPress={handleLogout} danger />
         </View>
 
         <Text style={styles.versionText}>SecMed Mobile · Demo</Text>
@@ -112,7 +121,8 @@ export default function SettingsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: colors.bg },
   header:         { backgroundColor: colors.white, paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  backText:       { fontSize: 14, fontWeight: '500', color: colors.primary, marginBottom: 8 },
+  backText:       { fontSize: 14, fontWeight: '500', color: colors.primary },
+  backRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   headerTitle:    { fontSize: 24, fontWeight: '700', color: colors.ink, letterSpacing: -0.4 },
   body:           { padding: spacing.md, paddingBottom: 80 },
   profileCard:    { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.cardBg, borderRadius: radius.lg, padding: spacing.md, marginBottom: spacing.lg, gap: 12 },

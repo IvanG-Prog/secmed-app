@@ -3,9 +3,11 @@ import {
   View, Text, TextInput, FlatList, TouchableOpacity,
   StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { searchVademecum, DrugProduct, DrugMonograph } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { SettingsButton } from '../components/SettingsButton';
+import { HomeLogo } from '../components/HomeLogo';
 
 function useDebounced<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -46,18 +48,19 @@ export default function VademecumScreen({ navigation, route }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.eyebrowRow}>
+          <HomeLogo size={14} />
+          <Text style={styles.eyebrow}>SECMED</Text>
+        </View>
         <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>SECMED</Text>
-            <Text style={styles.title}>Vadémecum</Text>
-          </View>
+          <Text style={styles.title}>Vadémecum</Text>
           <SettingsButton />
         </View>
         <Text style={styles.subtitle}>Productos farmacéuticos y monografías clínicas</Text>
       </View>
 
       <View style={styles.searchWrap}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Ionicons name="search" size={15} color={colors.inkSoft} />
         <TextInput
           style={styles.searchInput}
           value={query} onChangeText={setQuery}
@@ -68,7 +71,7 @@ export default function VademecumScreen({ navigation, route }: any) {
         />
         {query.length > 0 && (
           <TouchableOpacity onPress={() => setQuery('')}>
-            <Text style={{ color: colors.inkSoft, fontSize: 16, padding: 4 }}>✕</Text>
+            <Ionicons name="close" size={16} color={colors.inkSoft} style={{ padding: 4 }} />
           </TouchableOpacity>
         )}
       </View>
@@ -77,7 +80,7 @@ export default function VademecumScreen({ navigation, route }: any) {
 
       {!loading && query.trim().length >= 2 && !hasResults && searched && (
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>💊</Text>
+          <Ionicons name="medical-outline" size={40} color={colors.inkSoft} style={{ marginBottom: spacing.md }} />
           <Text style={styles.emptyTitle}>Sin resultados</Text>
           <Text style={styles.emptyBody}>No se encontró "{query}" en el vadémecum.</Text>
         </View>
@@ -85,7 +88,7 @@ export default function VademecumScreen({ navigation, route }: any) {
 
       {!loading && query.trim().length < 2 && (
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>📖</Text>
+          <Ionicons name="book-outline" size={40} color={colors.inkSoft} style={{ marginBottom: spacing.md }} />
           <Text style={styles.emptyTitle}>Busca un medicamento</Text>
           <Text style={styles.emptyBody}>Escribe al menos 2 letras del nombre comercial o principio activo.</Text>
         </View>
@@ -116,7 +119,7 @@ export default function VademecumScreen({ navigation, route }: any) {
                   style={[styles.card, shadow.card]} activeOpacity={0.82}
                   onPress={() => navigation.navigate('VademecumDetail', { monographId: m.id, dci: m.dci })}
                 >
-                  <View style={styles.cardIconWrap}><Text style={styles.cardIcon}>🧬</Text></View>
+                  <View style={styles.cardIconWrap}><Ionicons name="flask-outline" size={19} color={colors.secondary} /></View>
                   <View style={styles.cardInfo}>
                     <Text style={styles.cardName}>{m.dci}</Text>
                     <Text style={styles.cardSub}>{m.atc ? `ATC ${m.atc}` : 'Monografía clínica'}{m.via ? ` · ${m.via}` : ''}</Text>
@@ -131,7 +134,7 @@ export default function VademecumScreen({ navigation, route }: any) {
                 style={[styles.card, shadow.card, !p.is_active && styles.cardInactive]} activeOpacity={0.82}
                 onPress={() => navigation.navigate('VademecumDetail', { ef: p.ef, productName: p.nombre })}
               >
-                <View style={[styles.cardIconWrap, { backgroundColor: colors.bgSoft }]}><Text style={styles.cardIcon}>💊</Text></View>
+                <View style={[styles.cardIconWrap, { backgroundColor: colors.bgSoft }]}><Ionicons name="medical-outline" size={19} color={colors.primary} /></View>
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardName}>{p.nombre}</Text>
                   <Text style={styles.cardSub}>{p.principio_activo}</Text>
@@ -151,7 +154,8 @@ const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: colors.bg },
   header:         { paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.line },
   headerRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  eyebrow:        { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
+  eyebrow:        { fontSize: 10, color: colors.primary, letterSpacing: 2, fontFamily: 'Courier' },
+  eyebrowRow:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
   title:          { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
   subtitle:       { fontSize: 13, color: colors.inkSoft, marginTop: 3 },
   searchWrap:     { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.bgSoft, borderRadius: radius.md, marginHorizontal: spacing.md, marginTop: spacing.md, paddingHorizontal: 12, paddingVertical: 10, gap: 8 },

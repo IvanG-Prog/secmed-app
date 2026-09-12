@@ -8,6 +8,7 @@ import {
   changePassword, getBiometricKind, isBiometricEnabled, setBiometricEnabled,
   BiometricKind,
 } from '../utils/auth/localAuth';
+import { HomeLogo } from '../components/HomeLogo';
 
 const BIOMETRIC_LABEL: Record<BiometricKind, string> = {
   face: 'Face ID', fingerprint: 'Huella digital', none: 'No disponible en este dispositivo',
@@ -77,9 +78,12 @@ export default function SecuritySettingsScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Configuración</Text>
-        </TouchableOpacity>
+        <View style={styles.backRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.backText}>‹ Configuración</Text>
+          </TouchableOpacity>
+          <HomeLogo size={22} />
+        </View>
         <Text style={styles.headerTitle}>Seguridad y acceso</Text>
       </View>
 
@@ -136,7 +140,8 @@ export default function SecuritySettingsScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: colors.bg },
   header:         { backgroundColor: colors.white, paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  backText:       { fontSize: 14, fontWeight: '500', color: colors.primary, marginBottom: 8 },
+  backText:       { fontSize: 14, fontWeight: '500', color: colors.primary },
+  backRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   headerTitle:    { fontSize: 21, fontWeight: '700', color: colors.ink },
   body:           { padding: spacing.md, paddingBottom: 80 },
   sectionLabel:   { fontSize: 11, fontWeight: '700', color: colors.primary, letterSpacing: 1.2, marginBottom: 8, marginTop: 4 },

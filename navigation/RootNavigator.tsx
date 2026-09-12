@@ -1,7 +1,8 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/tokens';
 import { useSession } from '../hooks/useSession';
 
@@ -11,9 +12,10 @@ import LoginScreen    from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
 
 // App
+import DashboardScreen from '../screens/Dashboardscreen';
 import PatientsScreen        from '../screens/PatientsScreen';
 import PatientDetailScreen   from '../screens/PatientDetailScreen';
-import ConsultationScreen    from '../screens/ConsultationScreen';
+import ConsultationScreen from '../screens/Consultationscreen';
 import AppointmentsScreen    from '../screens/AppointmentsScreen';
 import DocumentsScreen       from '../screens/DocumentsScreen';
 import PortalScreen          from '../screens/PortalScreen';
@@ -25,8 +27,8 @@ import SecuritySettingsScreen from '../screens/Securitysettingsscreen';
 import PrivacySettingsScreen from '../screens/Privacysettingsscreen';
 import DataSettingsScreen from '../screens/Datasettingsscreen';
 
-
 export type RootStackParamList = {
+  Dashboard:        undefined;
   Tabs:             undefined;
   PatientDetail:    { patientId: string; patientName: string };
   Consultation:     { patientId: string; patientName: string };
@@ -42,20 +44,25 @@ export type RootStackParamList = {
   DataSettings:     undefined;
 };
 
-
 const AuthStack = createNativeStackNavigator();
-const Tab        = createBottomTabNavigator();
-const AppStack    = createNativeStackNavigator<RootStackParamList>();
+const Tab       = createBottomTabNavigator();
+const AppStack  = createNativeStackNavigator<RootStackParamList>();
 
 // ─── Iconos de tabs ───────────────────────────────────────────────────────────
 function icon(name: string, focused: boolean) {
-  const icons: Record<string, string> = {
-    Pacientes: '👤', Agenda: '📅', Docs: '📄', Vademecum: '💊', Portal: '🔐',
+  const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
+    Pacientes: focused ? 'people' : 'people-outline',
+    Agenda:    focused ? 'calendar' : 'calendar-outline',
+    Docs:      focused ? 'document-text' : 'document-text-outline',
+    Vademecum: focused ? 'medical' : 'medical-outline',
+    Portal:    focused ? 'shield-checkmark' : 'shield-checkmark-outline',
   };
   return (
-    <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.45 }}>
-      {icons[name] ?? '•'}
-    </Text>
+    <Ionicons
+      name={icons[name] ?? 'ellipse-outline'}
+      size={22}
+      color={focused ? colors.primary : colors.inkSoft}
+    />
   );
 }
 
@@ -122,6 +129,7 @@ function Tabs() {
 function AppFlow() {
   return (
     <AppStack.Navigator screenOptions={{ headerShown: false }}>
+      <AppStack.Screen name="Dashboard"        component={DashboardScreen} />
       <AppStack.Screen name="Tabs"             component={Tabs} />
       <AppStack.Screen name="PatientDetail"    component={PatientDetailScreen} />
       <AppStack.Screen name="Consultation"     component={ConsultationScreen} />

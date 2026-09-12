@@ -1,6 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SecMed API — apunta al backend Railway
 // ─────────────────────────────────────────────────────────────────────────────
+import { File, UploadType } from 'expo-file-system';
+
 const BASE_URL = 'https://secmed-demo-production.up.railway.app/api';
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
@@ -80,15 +82,28 @@ export type Appointment = {
 };
 
 // Documentos
-export type DocType = 'receta' | 'informe';
+export type DocType = 'receta' | 'informe' | 'orden_lab' | 'resultado_lab' | 'resultado_externo' | 'informe_externo' | 'factura';
 export type DocumentSummary = {
   id: string; patient_id: string; patient_name: string;
   doc_type: DocType; title: string; issued_at: number; delivered: boolean;
+  lab_status?: string | null;
+  source?: string | null;
+  file_hash?: string | null;
+  review_status?: string | null;
+  amount?: number | null;
+  currency?: string | null;
 };
 export type DocumentDetail = DocumentSummary & {
   content: any; content_hash: string;
   issuer: string; verify_path: string;
 };
+
+// Documento tiene un escaneo/foto original guardado (viene del flujo de
+// "documento externo": resultado o informe subido como foto/PDF).
+export const hasOriginalFile = (doc: { doc_type: DocType; file_hash?: string | null }) =>
+  !!doc.file_hash && (doc.doc_type === 'resultado_externo' || doc.doc_type === 'informe_externo');
+
+export const documentFileUrl = (id: string) => `${BASE_URL}/documents/${id}/file`;
 
 // ZK
 export type AttestResponse  = { attestation_id: string; verify_path: string; claim: string; issued_at: number };
@@ -108,12 +123,22 @@ export const generateReport      = (patient_id: string, notes: SoapNote[])  => r
 export const suggestPrescription = (text: string)                            => req<{ medicamentos: Medication[] }>('/prescription/suggest', { method: 'POST', body: JSON.stringify({ text }) });
 
 // ─── Transcripción de audio ──────────────────────────────────────────────────
+// FormData con el shorthand clásico { uri, name, type } ya no funciona en
+// versiones nuevas de React Native/Hermes ("Unsupported FormDataPart
+// implementation") — expo-file-system sí sabe subir un archivo real como
+// multipart/form-data.
 export const transcribeAudio = async (audioUri: string): Promise<{ text: string }> => {
-  const form = new FormData();
-  form.append('audio', { uri: audioUri, name: 'audio.m4a', type: 'audio/m4a' } as any);
-  const res = await fetch(`${BASE_URL}/transcribe`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error('Error transcribiendo audio');
-  return res.json();
+  const file = new File(audioUri);
+  const result = await file.upload(`${BASE_URL}/transcribe`, {
+    httpMethod: 'POST',
+    uploadType: UploadType.MULTIPART,
+    fieldName: 'audio',
+    mimeType: 'audio/m4a',
+  });
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error('Error transcribiendo audio');
+  }
+  return JSON.parse(result.body);
 };
 
 // ─── Citas ───────────────────────────────────────────────────────────────────
@@ -157,3 +182,65 @@ export type ProductDetail = { product: DrugProduct; monograph: DrugMonograph | n
 export const searchVademecum   = (q: string)        => req<VademecumSearchResult>(`/vademecum/search?q=${encodeURIComponent(q)}`);
 export const getVademecumProduct   = (ef: string)    => req<ProductDetail>(`/vademecum/product/${encodeURIComponent(ef)}`);
 export const getVademecumMonograph = (id: string)    => req<DrugMonograph>(`/vademecum/monograph/${encodeURIComponent(id)}`);
+
+// ─── Dashboard — estadísticas agregadas ──────────────────────────────────────
+// El backend no expone un endpoint /stats propio; estas cifras se calculan
+// en el cliente combinando los endpoints existentes. Si el backend crece,
+// esto se puede reemplazar por una sola llamada a /api/dashboard.
+export type DashboardStats = {
+  totalPatients: number;
+  appointmentsToday: number;
+  confirmedAppointments: number;
+  documentsThisMonth: number;
+  // Tendencia de consultas: últimos 6 meses, incluyendo el actual.
+  // Cada punto es el conteo de citas cuyo starts_at cae en ese mes.
+  monthlyTrend: { label: string; count: number }[];
+  monthOverMonthChange: number; // % de cambio del mes actual vs el anterior
+};
+
+const MONTH_LABELS_ES = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const [patients, appointments, documents] = await Promise.all([
+    listPatients(), listAppointments(), listDocuments(),
+  ]);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const appointmentsToday = appointments.filter(a => a.starts_at.slice(0, 10) === todayStr).length;
+  const confirmedAppointments = appointments.filter(a => a.status === 'confirmada').length;
+
+  const now = new Date();
+  const documentsThisMonth = documents.filter(d => {
+    const issued = new Date(d.issued_at * 1000);
+    return issued.getMonth() === now.getMonth() && issued.getFullYear() === now.getFullYear();
+  }).length;
+
+  // Construye los últimos 6 meses (incluyendo el actual) y cuenta citas por mes.
+  const months: { year: number; month: number; label: string }[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth(), label: MONTH_LABELS_ES[d.getMonth()] });
+  }
+  const monthlyTrend = months.map(({ year, month, label }) => {
+    const count = appointments.filter(a => {
+      const d = new Date(a.starts_at);
+      return d.getFullYear() === year && d.getMonth() === month;
+    }).length;
+    return { label, count };
+  });
+
+  const current  = monthlyTrend[monthlyTrend.length - 1]?.count ?? 0;
+  const previous = monthlyTrend[monthlyTrend.length - 2]?.count ?? 0;
+  const monthOverMonthChange = previous === 0
+    ? (current > 0 ? 100 : 0)
+    : Math.round(((current - previous) / previous) * 100);
+
+  return {
+    totalPatients: patients.length,
+    appointmentsToday,
+    confirmedAppointments,
+    documentsThisMonth,
+    monthlyTrend,
+    monthOverMonthChange,
+  };
+}

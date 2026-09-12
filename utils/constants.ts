@@ -28,8 +28,23 @@ export const RISK_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 export const DOC_TYPE_LABELS: Record<string, string> = {
-  receta:  '💊 Receta',
-  informe: '📋 Informe',
+  receta:             'Receta',
+  informe:            'Informe',
+  orden_lab:          'Orden de laboratorio',
+  resultado_lab:      'Resultado de laboratorio',
+  resultado_externo:  'Resultado externo',
+  informe_externo:    'Informe externo',
+  factura:            'Factura',
+};
+
+export const DOC_TYPE_ICONS: Record<string, string> = {
+  receta:             'medkit-outline',
+  informe:            'document-text-outline',
+  orden_lab:          'flask-outline',
+  resultado_lab:      'flask-outline',
+  resultado_externo:  'camera-outline',
+  informe_externo:    'camera-outline',
+  factura:            'receipt-outline',
 };
 
 export const VADEMECUM_MIN_QUERY_LENGTH = 2;

@@ -3,9 +3,11 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { getPatient, getPatientRisk, deletePatient, Patient, PatientRisk } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { RISK_COLORS } from '../utils/constants';
+import { HomeLogo } from '../components/HomeLogo';
 
 // ─── Helpers de UI ────────────────────────────────────────────────────────────
 
@@ -94,16 +96,19 @@ export default function PatientDetailScreen({ route, navigation }: any) {
     <View style={styles.container}>
       {/* ── Header ── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ Volver</Text>
-        </TouchableOpacity>
+        <View style={styles.backRow}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+            <Text style={styles.backText}>‹ Volver</Text>
+          </TouchableOpacity>
+          <HomeLogo size={22} />
+        </View>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.headerName}>{patient.name}</Text>
             <Text style={styles.headerId}>{patient.id}</Text>
           </View>
           <TouchableOpacity onPress={handleDelete} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
-            <Text style={{ fontSize: 18 }}>🗑️</Text>
+            <Ionicons name="trash-outline" size={18} color={colors.danger} />
           </TouchableOpacity>
         </View>
 
@@ -111,17 +116,17 @@ export default function PatientDetailScreen({ route, navigation }: any) {
         <View style={styles.quickRow}>
           <TouchableOpacity style={styles.quickBtn}
             onPress={() => navigation.navigate('Consultation', { patientId, patientName })}>
-            <Text style={styles.quickIcon}>✏️</Text>
+            <Ionicons name="create-outline" size={18} color={colors.primary} />
             <Text style={styles.quickLabel}>Consulta</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickBtn}
             onPress={() => navigation.navigate('Docs', { patientId, patientName })}>
-            <Text style={styles.quickIcon}>📄</Text>
+            <Ionicons name="document-text-outline" size={18} color={colors.primary} />
             <Text style={styles.quickLabel}>Documentos</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.quickBtn}
             onPress={() => navigation.navigate('Agenda')}>
-            <Text style={styles.quickIcon}>📅</Text>
+            <Ionicons name="calendar-outline" size={18} color={colors.primary} />
             <Text style={styles.quickLabel}>Agenda</Text>
           </TouchableOpacity>
         </View>
@@ -146,7 +151,7 @@ export default function PatientDetailScreen({ route, navigation }: any) {
             <Row label="Edad"                  value={`${patient.age} años`} />
             <Row label="Sexo"                  value={patient.sex === 'M' ? 'Masculino' : 'Femenino'} />
             <Row label="Donante de órganos"   value={patient.organ_donor ? 'Sí' : 'No'} />
-            <Row label="Vacunación completa"  value={patient.vaccination_complete ? 'Sí ✓' : 'No ✗'} />
+            <Row label="Vacunación completa"  value={patient.vaccination_complete ? 'Sí' : 'No'} />
             <Row label="Última visita"         value={`Hace ${patient.last_visit_days} días`} />
             <Row label="Fumador"               value={patient.smoker ? 'Sí' : 'No'} />
             <Row label="Actividad física"     value={patient.physically_active ? 'Sí' : 'No'} />
@@ -230,10 +235,10 @@ export default function PatientDetailScreen({ route, navigation }: any) {
               activeOpacity={0.82}
               onPress={() => navigation.navigate('Portal', { patientId, premode: 'blood_type' })}
             >
-              <Text style={styles.zkIcon}>🩸</Text>
+              <Ionicons name="water-outline" size={22} color={colors.secondary} style={styles.zkIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.zkTitle}>Certificado de tipo de sangre</Text>
-                <Text style={styles.zkDesc}>Prueba ZK sin revelar el expediente → Portal</Text>
+                <Text style={styles.zkDesc}>Prueba ZK sin revelar el expediente, va al Portal</Text>
               </View>
               <Text style={styles.chevron}>›</Text>
             </TouchableOpacity>
@@ -243,7 +248,7 @@ export default function PatientDetailScreen({ route, navigation }: any) {
               activeOpacity={0.82}
               onPress={() => navigation.navigate('Portal', { patientId, premode: 'last_visit' })}
             >
-              <Text style={styles.zkIcon}>📆</Text>
+              <Ionicons name="calendar-outline" size={22} color={colors.secondary} style={styles.zkIcon} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.zkTitle}>Certificado de visita reciente</Text>
                 <Text style={styles.zkDesc}>Prueba de última consulta sin revelar fecha exacta</Text>
@@ -265,7 +270,8 @@ export default function PatientDetailScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container:        { flex: 1, backgroundColor: colors.bg },
   header:           { backgroundColor: colors.white, paddingHorizontal: spacing.md, paddingTop: 56, paddingBottom: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.line },
-  backBtn:          { marginBottom: 8 },
+  backBtn:          {},
+  backRow:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   backText:         { fontSize: 14, fontWeight: '500', color: colors.primary },
   headerRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: spacing.md },
   headerName:       { fontSize: 24, fontWeight: '700', color: colors.ink, letterSpacing: -0.4 },
@@ -301,7 +307,7 @@ const styles = StyleSheet.create({
   factorVal:        { flex: 1, fontSize: 12, fontWeight: '500', color: colors.ink, textAlign: 'center' },
   factorPts:        { flex: 0.6, fontFamily: 'Courier', fontSize: 12, fontWeight: '600', textAlign: 'right' },
   zkCard:           { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  zkIcon:           { fontSize: 28 },
+  zkIcon:           {},
   zkTitle:          { fontSize: 14, fontWeight: '600', color: colors.ink, marginBottom: 3 },
   zkDesc:           { fontSize: 12, color: colors.inkSoft },
   chevron:          { fontSize: 22, color: colors.inkSoft },

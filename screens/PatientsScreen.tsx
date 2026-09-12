@@ -5,10 +5,12 @@ import {
   StyleSheet, RefreshControl,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { listPatients, createPatient, PatientSummary, NewPatient } from '../utils/api';
 import { colors, spacing, radius, shadow } from '../theme/tokens';
 import { BLOOD_TYPES, FAMILY_HISTORY_OPTIONS } from '../utils/constants';
 import { SettingsButton } from '../components/SettingsButton';
+import { HomeLogo } from '../components/HomeLogo';
 
 // ─── Componentes auxiliares ──────────────────────────────────────────────────
 
@@ -107,7 +109,7 @@ function AddPatientModal({ visible, onClose, onCreated }: {
         <View style={styles.modalHeader}>
           <Text style={styles.modalTitle}>Nuevo paciente</Text>
           <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-            <Text style={styles.modalClose}>✕</Text>
+            <Ionicons name="close" size={20} color={colors.inkSoft} />
           </TouchableOpacity>
         </View>
 
@@ -216,7 +218,10 @@ export default function PatientsScreen({ navigation }: any) {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.eyebrow}>SECMED</Text>
+          <View style={styles.eyebrowRow}>
+            <HomeLogo size={14} />
+            <Text style={styles.eyebrow}>SECMED</Text>
+          </View>
           <Text style={styles.title}>Pacientes</Text>
         </View>
         <View style={styles.headerActions}>
@@ -229,7 +234,7 @@ export default function PatientsScreen({ navigation }: any) {
 
       {/* Búsqueda */}
       <View style={styles.searchWrap}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Ionicons name="search" size={15} color={colors.inkSoft} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           value={search} onChangeText={setSearch}
@@ -238,7 +243,7 @@ export default function PatientsScreen({ navigation }: any) {
         />
         {search.length > 0 && (
           <TouchableOpacity onPress={() => setSearch('')}>
-            <Text style={{ color: colors.inkSoft, fontSize: 16, padding: 4 }}>✕</Text>
+            <Ionicons name="close" size={16} color={colors.inkSoft} style={{ padding: 4 }} />
           </TouchableOpacity>
         )}
       </View>
@@ -258,7 +263,7 @@ export default function PatientsScreen({ navigation }: any) {
         }
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🏥</Text>
+            <Ionicons name="medical-outline" size={40} color={colors.inkSoft} style={{ marginBottom: spacing.md }} />
             <Text style={styles.emptyTitle}>
               {search ? 'Sin resultados' : 'Sin pacientes'}
             </Text>
@@ -299,7 +304,8 @@ const styles = StyleSheet.create({
   container:      { flex: 1, backgroundColor: colors.bg },
   header:         { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', paddingHorizontal: spacing.md, paddingTop: 60, paddingBottom: spacing.md },
   headerActions:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  eyebrow:        { fontSize: 10, color: colors.primary, letterSpacing: 2, marginBottom: 2, fontFamily: 'Courier' },
+  eyebrowRow:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 },
+  eyebrow:        { fontSize: 10, color: colors.primary, letterSpacing: 2, fontFamily: 'Courier' },
   title:          { fontSize: 28, fontWeight: '700', color: colors.ink, letterSpacing: -0.5 },
   addBtn:         { backgroundColor: colors.primary, borderRadius: radius.full, paddingHorizontal: 16, paddingVertical: 9 },
   addBtnText:     { color: colors.white, fontSize: 13, fontWeight: '600' },
