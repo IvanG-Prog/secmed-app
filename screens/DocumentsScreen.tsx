@@ -162,6 +162,7 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
   const [verifying, setVerifying] = useState(false);
   const [verified,  setVerified]  = useState<{ valid: boolean; content_hash: string; recomputed_hash: string } | null>(null);
   const [delivering, setDelivering] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
 
   useFocusEffect(useCallback(() => {
     if (!docId) return;
@@ -195,8 +196,6 @@ function DocDetailModal({ docId, onClose }: { docId: string | null; onClose: () 
     } catch (e: any) { Alert.alert('Error', e.message); }
     finally { setDelivering(false); }
   };
-
-  const [showOriginal, setShowOriginal] = useState(false);
 
   const renderContent = (content: any, docType: string) => {
     if (!content) return null;

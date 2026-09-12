@@ -1,6 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // SecMed API — apunta al backend Railway
 // ─────────────────────────────────────────────────────────────────────────────
+import { File, UploadType } from 'expo-file-system';
+
 const BASE_URL = 'https://secmed-demo-production.up.railway.app/api';
 
 async function req<T>(path: string, init?: RequestInit): Promise<T> {
@@ -121,12 +123,22 @@ export const generateReport      = (patient_id: string, notes: SoapNote[])  => r
 export const suggestPrescription = (text: string)                            => req<{ medicamentos: Medication[] }>('/prescription/suggest', { method: 'POST', body: JSON.stringify({ text }) });
 
 // ─── Transcripción de audio ──────────────────────────────────────────────────
+// FormData con el shorthand clásico { uri, name, type } ya no funciona en
+// versiones nuevas de React Native/Hermes ("Unsupported FormDataPart
+// implementation") — expo-file-system sí sabe subir un archivo real como
+// multipart/form-data.
 export const transcribeAudio = async (audioUri: string): Promise<{ text: string }> => {
-  const form = new FormData();
-  form.append('audio', { uri: audioUri, name: 'audio.m4a', type: 'audio/m4a' } as any);
-  const res = await fetch(`${BASE_URL}/transcribe`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error('Error transcribiendo audio');
-  return res.json();
+  const file = new File(audioUri);
+  const result = await file.upload(`${BASE_URL}/transcribe`, {
+    httpMethod: 'POST',
+    uploadType: UploadType.MULTIPART,
+    fieldName: 'audio',
+    mimeType: 'audio/m4a',
+  });
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error('Error transcribiendo audio');
+  }
+  return JSON.parse(result.body);
 };
 
 // ─── Citas ───────────────────────────────────────────────────────────────────
