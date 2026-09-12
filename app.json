@@ -27,7 +27,11 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.anonymous.secmedapp",
       "permissions": [
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
       ]
     },
     "web": {
@@ -36,6 +40,11 @@
     "plugins": [
       "expo-secure-store",
       "expo-audio"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a4924e1f-074f-440a-9305-7d920ee7fafa"
+      }
+    }
   }
 }
